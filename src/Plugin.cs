@@ -31,6 +31,8 @@ namespace Road96Toolkit
         internal static ConfigEntry<bool> AutoBackup;
         internal static Hotkey PhotoKey;
         internal static ConfigEntry<bool> PhotoPause;
+        internal static ConfigEntry<bool> PhotoRememberLast;
+        internal static ConfigEntry<bool> PhotoLookMovesCamera;
         internal static ConfigEntry<int> AutoBackupCount;
         internal static ConfigEntry<bool> PreviewOnHover;
 
@@ -80,6 +82,8 @@ namespace Road96Toolkit
             ChoiceHints = Config.Bind("Cheats", "ChoiceHints", false, "Show what every dialogue choice does (karma, vote, money, odds), which one is best, and keypad codes");
             LevelNamePopup = Config.Bind("General", "LevelNamePopup", true, "Show the name of a level for a few seconds after it loads");
             LevelNamePopupSeconds = Config.Bind("General", "LevelNamePopupSeconds", 4f, "How long the level name stays on screen");
+            PhotoRememberLast = Config.Bind("PhotoMode", "RememberLastOptions", true, "Open photo mode with the options you used last time");
+            PhotoLookMovesCamera = Config.Bind("PhotoMode", "LooksSetFovAndRoll", false, "Loading a saved look also sets the field of view and roll");
             PhotoPause = Config.Bind("PhotoMode", "PauseGame", true, "Pause the game when photo mode opens");
             AutoBackup = Config.Bind("Saves", "AutoBackup", true, "Copy the save every time the game writes it, to BepInEx/config/Road96Toolkit/saves/auto");
             AutoBackupCount = Config.Bind("Saves", "AutoBackupCount", 15, "How many automatic backups to keep");

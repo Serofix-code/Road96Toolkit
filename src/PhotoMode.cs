@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
 using Il2CppInterop.Runtime;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -39,6 +42,86 @@ namespace Road96Toolkit
         static Light _sun;
         static Quaternion _sunOriginal;
 
+        // a saved set of photo mode options
+        public class Look
+        {
+            public string Name { get; set; } = "";
+            public int Preset { get; set; }
+            public float Exposure { get; set; }
+            public float Contrast { get; set; }
+            public float Saturation { get; set; }
+            public float Hue { get; set; }
+            public float Temperature { get; set; }
+            public float Tint { get; set; }
+            public float Vignette { get; set; }
+            public float Grain { get; set; }
+            public float[] Filter { get; set; } = { 1, 1, 1 };
+            public bool Dof { get; set; }
+            public float Focus { get; set; } = 3f;
+            public float Blur { get; set; } = 4f;
+            public float Fov { get; set; } = 60f;
+            public float Roll { get; set; }
+            public float SunYaw { get; set; }
+            public float SunPitch { get; set; }
+            public bool Grid { get; set; }
+            public int Size { get; set; } = 1;
+        }
+
+        class LookFile
+        {
+            public Look Last { get; set; }
+            public List<Look> Saved { get; set; } = new List<Look>();
+        }
+
+        static LookFile _looks;
+        static int _page, _lookPage;
+        static string _lookName = "";
+        static Look _selLook;
+        static string LooksPath => Path.Combine(BepInEx.Paths.ConfigPath, "Road96Toolkit", "photo-looks.json");
+
+        static LookFile Looks
+        {
+            get
+            {
+                if (_looks != null) return _looks;
+                try { if (File.Exists(LooksPath)) _looks = JsonSerializer.Deserialize<LookFile>(File.ReadAllText(LooksPath)); }
+                catch (Exception e) { Plugin.Log.LogWarning("Photo looks file: " + e.Message); }
+                _looks ??= new LookFile();
+                _looks.Saved ??= new List<Look>();
+                return _looks;
+            }
+        }
+
+        static void SaveLooks()
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(LooksPath));
+                File.WriteAllText(LooksPath, JsonSerializer.Serialize(Looks, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception e) { Plugin.Log.LogWarning("Saving photo looks: " + e.Message); }
+        }
+
+        static Look Capture(string name) => new Look
+        {
+            Name = name, Preset = _preset, Exposure = _exposure, Contrast = _contrast, Saturation = _saturation, Hue = _hue,
+            Temperature = _temperature, Tint = _tint, Vignette = _vignette, Grain = _grain,
+            Filter = new[] { _filter.r, _filter.g, _filter.b }, Dof = _dof, Focus = _focus, Blur = _blur,
+            Fov = Freecam.Fov, Roll = Freecam.Roll, SunYaw = _sunYaw, SunPitch = _sunPitch, Grid = _grid, Size = _superSize,
+        };
+
+        static void Use(Look l, bool camera)
+        {
+            if (l == null) return;
+            _preset = l.Preset; _exposure = l.Exposure; _contrast = l.Contrast; _saturation = l.Saturation; _hue = l.Hue;
+            _temperature = l.Temperature; _tint = l.Tint; _vignette = l.Vignette; _grain = l.Grain;
+            _filter = l.Filter != null && l.Filter.Length >= 3 ? new Color(l.Filter[0], l.Filter[1], l.Filter[2]) : Color.white;
+            _dof = l.Dof; _focus = l.Focus; _blur = l.Blur; _sunYaw = l.SunYaw; _sunPitch = l.SunPitch;
+            _grid = l.Grid; _superSize = l.Size is 1 or 2 or 4 ? l.Size : 1;
+            if (camera) { Freecam.Fov = l.Fov; Freecam.Roll = l.Roll; }
+            Apply();
+        }
+
         public static string Folder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Road 96 Photos");
 
         static readonly string[] Presets = { "None", "Black and white", "Warm", "Cold", "Vintage", "Dramatic", "Dreamy" };
@@ -61,6 +144,7 @@ namespace Road96Toolkit
 
             BuildVolume();
             FindSun();
+            if (Plugin.PhotoRememberLast.Value && Looks.Last != null) Use(Looks.Last, false);
             Apply();
             ToolkitBehaviour.Toast($"Photo mode. {Plugin.PhotoKey} to leave, P for a photo, H hides this panel");
         }
@@ -69,6 +153,8 @@ namespace Road96Toolkit
         {
             if (!Active) return;
             Active = false;
+            Looks.Last = Capture("Last used");
+            SaveLooks();
             if (_paused) { Time.timeScale = _prevTimeScale <= 0f ? 1f : _prevTimeScale; _paused = false; WorldTab.FixSound(false); }
             if (!_hudWasHidden && WorldTab.HudHidden) WorldTab.ToggleHud();
             if (_volumeGo != null) UnityEngine.Object.Destroy(_volumeGo);
@@ -265,6 +351,10 @@ namespace Road96Toolkit
                 if (_paused) { Time.timeScale = _prevTimeScale <= 0f ? 1f : _prevTimeScale; _paused = false; WorldTab.FixSound(false); }
                 else { _prevTimeScale = Time.timeScale; Time.timeScale = 0f; _paused = true; }
             }
+            r = Gui.Row(2);
+            if (GUI.Button(r[0], _page == 0 ? "[ Options ]" : "Options")) _page = 0;
+            if (GUI.Button(r[1], _page == 1 ? $"[ Saved looks ({Looks.Saved.Count}) ]" : $"Saved looks ({Looks.Saved.Count})")) _page = 1;
+            if (_page == 1) { DrawLooks(); return; }
 
             Gui.Header("Camera");
             Freecam.Fov = Slider("Field of view", Freecam.Fov, 5f, 5f, 150f);
@@ -311,6 +401,48 @@ namespace Road96Toolkit
                 Application.OpenURL("file:///" + Folder.Replace('\\', '/'));
             }
             Gui.Label("Hold right mouse to look, WASD Q E to fly, wheel for speed.");
+        }
+
+        static void DrawLooks()
+        {
+            Gui.Header("Save these options");
+            var r = Gui.Row(1f, 2.4f);
+            GUI.Label(r[0], "Name");
+            _lookName = Gui.TextField(r[1], _lookName);
+            r = Gui.Row(2);
+            if (GUI.Button(r[0], "Save as a new look"))
+            {
+                var name = string.IsNullOrWhiteSpace(_lookName) ? "Look " + (Looks.Saved.Count + 1) : _lookName.Trim();
+                Looks.Saved.RemoveAll(l => l.Name == name);
+                Looks.Saved.Add(Capture(name));
+                SaveLooks();
+                _lookName = "";
+                ToolkitBehaviour.Toast("Saved look: " + name);
+            }
+            if (GUI.Button(r[1], "Overwrite selected") && _selLook != null)
+            {
+                var i = Looks.Saved.IndexOf(_selLook);
+                if (i >= 0) { Looks.Saved[i] = Capture(_selLook.Name); _selLook = Looks.Saved[i]; SaveLooks(); ToolkitBehaviour.Toast("Updated " + _selLook.Name); }
+            }
+            if (Gui.Toggle("Start photo mode with the options I used last", Plugin.PhotoRememberLast.Value))
+                Plugin.PhotoRememberLast.Value = !Plugin.PhotoRememberLast.Value;
+
+            Gui.Header("Your looks");
+            int pick = Gui.List(Looks.Saved, ref _lookPage, l => l.Name + (l.Preset > 0 && l.Preset < Presets.Length ? "   (" + Presets[l.Preset] + ")" : ""), 10, l => l == _selLook);
+            if (pick >= 0) { _selLook = Looks.Saved[pick]; Use(_selLook, Plugin.PhotoLookMovesCamera.Value); ToolkitBehaviour.Toast("Using " + _selLook.Name); }
+
+            r = Gui.Row(2);
+            if (GUI.Button(r[0], "Delete selected") && _selLook != null)
+            {
+                Looks.Saved.Remove(_selLook);
+                _selLook = null;
+                SaveLooks();
+            }
+            if (GUI.Button(r[1], (Plugin.PhotoLookMovesCamera.Value ? "[ON] " : "[off] ") + "Looks set FOV and roll"))
+                Plugin.PhotoLookMovesCamera.Value = !Plugin.PhotoLookMovesCamera.Value;
+            Gui.Label("Click a look to use it. Saved in BepInEx/config/Road96Toolkit/photo-looks.json");
+            Gui.Space(4);
+            if (Gui.Button("Leave photo mode (" + Plugin.PhotoKey + ")")) Disable();
         }
 
         static void FocusOnCenter()

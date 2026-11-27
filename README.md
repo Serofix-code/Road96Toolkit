@@ -75,6 +75,8 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Rule of thirds grid
 * P takes a photo, H hides the panel for a clean view. The toolkit hides its own UI in the photo. Pick 1x, 2x or 4x size (2x and 4x depend on the game's renderer, use 1x if they come out wrong)
 * Photos go to `Pictures/Road 96 Photos`
+* Saved looks: save all the photo options (filter, colours, focus, sun, grid, size, and optionally field of view and roll) under a name and use them again with one click
+* Photo mode opens with the options you used last time (can be turned off)
 
 **Dev view** (F7)
 * An editor mode built on the freecam. Hold the right mouse button to look around, the cursor stays free for clicking
