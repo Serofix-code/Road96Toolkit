@@ -30,6 +30,7 @@ namespace Road96Toolkit
 
         public static void Enable()
         {
+            if (Noclip.Active) Noclip.Disable();
             _cam = Game.MainCamera;
             if (_cam == null)
             {
@@ -139,8 +140,13 @@ namespace Road96Toolkit
             if (GUI.Button(top[1], "Back to teen view")) GameStates.BackToTeenView();
             if (Gui.Toggle("Lock the player while flying", _lockPlayer)) _lockPlayer = !_lockPlayer;
             Gui.Space();
+            Gui.Header("Noclip");
+            Gui.Label("Fly your teen through walls. You stay in control and can stop anywhere.");
+            if (Gui.Toggle("Noclip (" + Plugin.NoclipKey + ")", Noclip.Active)) Noclip.Toggle();
+            Gui.Label("WASD fly where you look, Space up, Ctrl down, Shift fast, Alt slow, wheel speed");
 
-            Gui.Header("Controls");
+            Gui.Space();
+            Gui.Header("Freecam controls");
             Gui.Label("W A S D move, Q down, E or Space up, Backspace back to teen view");
             Gui.Label("Shift is 4x faster, Ctrl is 4x slower, mouse wheel changes speed");
             Gui.Label("With this window open hold the right mouse button to look around");

@@ -115,6 +115,7 @@ namespace Road96Toolkit
         public static void BackToTeenView()
         {
             Freecam.Disable();
+            Noclip.Disable();
             int fly = StopGameFlyMode();
 
             Game.Try("Camera brain", () =>

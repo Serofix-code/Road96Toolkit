@@ -11,16 +11,17 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.1.0";
+        public const string Version = "1.2.0";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;
 
-        internal static Hotkey MenuKey, FreecamKey, PickKey, HideUiKey, DevMenuKey;
+        internal static Hotkey MenuKey, FreecamKey, NoclipKey, PickKey, HideUiKey, DevMenuKey;
         internal static ConfigEntry<bool> FreezeWithMenu;
         internal static ConfigEntry<float> MenuScale;
         internal static ConfigEntry<bool> LogStates;
         internal static ConfigEntry<bool> BlockGameFlyMode;
+        internal static ConfigEntry<bool> CupEsp;
 
         static Hotkey BindKey(ConfigFile cfg, string name, string def, string desc)
         {
@@ -41,6 +42,7 @@ namespace Road96Toolkit
 
             MenuKey = BindKey(Config, "Menu", "F1", "Open or close the toolkit window");
             FreecamKey = BindKey(Config, "Freecam", "Ctrl+F2", "Turn the free camera on or off");
+            NoclipKey = BindKey(Config, "Noclip", "Ctrl+F3", "Turn noclip on or off (fly the teen through walls)");
             PickKey = BindKey(Config, "PickObject", "F3", "Select whatever is in the middle of the screen for the scene editor");
             HideUiKey = BindKey(Config, "HideHud", "F4", "Hide or show the game HUD");
             DevMenuKey = BindKey(Config, "DeveloperMenu", "F6", "Open the game's own developer debug menu");
@@ -50,6 +52,8 @@ namespace Road96Toolkit
             LogStates = Config.Bind("General", "LogGameStates", true, "Write the game's state changes to the BepInEx log, handy when reporting bugs");
 
             BlockGameFlyMode = Config.Bind("General", "BlockGameFlyMode", true, "The game has a hidden developer fly mode that can switch on by itself. Keep this on to stop it, the toolkit freecam still works");
+
+            CupEsp = Config.Bind("Cheats", "CupGameBallEsp", true, "Show which cup hides the ball in the shell game");
 
             AddComponent<ToolkitBehaviour>();
             Log.LogInfo($"{Name} {Version} loaded. Press {MenuKey} in game.");

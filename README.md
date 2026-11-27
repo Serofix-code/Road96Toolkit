@@ -30,6 +30,14 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Day or night and desert or forest for the next scenario
 * Pause, normal speed, 2x speed
 * Hide the game HUD for clean screenshots
+* Fix sound button: the game mutes everything while the game speed is 0 and does not always unmute, this puts it back
+
+**Minigames**
+* Ball ESP for the cup game (the guy who shuffles the cans): a red box sits on the can that hides the ball and follows it through the whole shuffle
+
+**Noclip**
+* Fly your teen through walls and floors with WASD where you look, Space up, Ctrl down, Shift fast, Alt slow
+* Unlike the freecam you are the one moving, so you can land anywhere and keep playing
 
 **Freecam**
 * Only turns on from its shortcut (Ctrl+F2) or the button in the menu
@@ -61,6 +69,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 | F1 | Open or close the menu |
 | Ctrl+F2 | Freecam on or off |
 | Backspace | Leave the freecam and go back to the teen's view |
+| Ctrl+F3 | Noclip on or off |
 | F3 | Select the object in the middle of the screen |
 | F4 | Hide or show the HUD |
 | F6 | Open the developer menu tab |

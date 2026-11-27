@@ -42,6 +42,7 @@ namespace Road96Toolkit
         {
             if (Plugin.MenuKey.Pressed()) SetOpen(!_open);
             if (Plugin.FreecamKey.Pressed()) Freecam.Toggle();
+            if (Plugin.NoclipKey.Pressed()) Noclip.Toggle();
             if (Plugin.PickKey.Pressed()) SceneEditor.PickUnderCrosshair();
             if (Plugin.HideUiKey.Pressed()) WorldTab.ToggleHud();
             if (Plugin.DevMenuKey.Pressed())
@@ -55,7 +56,10 @@ namespace Road96Toolkit
 
             GameStates.Update();
             Freecam.Update();
+            Noclip.Update();
+            CupEsp.Update();
             SceneEditor.Update();
+            CursorFix();
         }
 
         void LateUpdate()
@@ -89,11 +93,34 @@ namespace Road96Toolkit
                 _playerFrozenByUs = false;
                 Cursor.visible = _prevCursorVisible;
                 Cursor.lockState = _prevCursorLock;
+                // let the game put its own mouse setting back, and keep checking for a moment
+                Game.Try("Cursor restore", () => GameStates.Stack?.ForceUpdateStateOverride());
+                _cursorFixUntil = Time.unscaledTime + 1f;
             }
+        }
+
+        float _cursorFixUntil;
+
+        // The game only locks the mouse when its state changes, so after our window closes we
+        // copy its wish over for a short while in case something else showed the cursor.
+        void CursorFix()
+        {
+            if (_open || Time.unscaledTime > _cursorFixUntil) return;
+            try
+            {
+                var stack = GameStates.Stack;
+                if (stack == null) return;
+                bool lockIt = stack.LastOverride._lockMouse;
+                Cursor.lockState = lockIt ? CursorLockMode.Locked : CursorLockMode.None;
+                Cursor.visible = !lockIt;
+            }
+            catch { }
         }
 
         void OnGUI()
         {
+            CupEsp.Draw();
+
             float s = Mathf.Clamp(Plugin.MenuScale.Value, 0.5f, 3f);
             if (Math.Abs(s - 1f) > 0.01f)
                 GUI.matrix = Matrix4x4.Scale(new Vector3(s, s, 1f));
@@ -104,6 +131,9 @@ namespace Road96Toolkit
                 GUI.Box(tr, "");
                 GUI.Box(tr, _toast);
             }
+
+            if (Noclip.Active && !_open)
+                GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), $"Noclip  |  WASD fly where you look  Space up  Ctrl down  Shift fast  Alt slow  Scroll speed ({Noclip.Speed:0.0})  {Plugin.NoclipKey} to stop");
 
             if (Freecam.Active && !_open)
                 GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), "Freecam  |  WASD move  Q/E down/up  Shift fast  Ctrl slow  Scroll speed  " + Plugin.FreecamKey + " or Backspace for teen view");

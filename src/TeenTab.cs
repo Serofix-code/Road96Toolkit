@@ -122,18 +122,75 @@ namespace Road96Toolkit
                 {
                     var face = settings.GetPlayerFaceById(i);
                     var info = new FaceInfo { Gender = face._gender };
-                    var sp = face._icon;
-                    if (sp != null && sp.texture != null)
-                    {
-                        var tex = sp.texture;
-                        var tr = sp.textureRect;
-                        info.Tex = tex;
-                        info.Uv = new Rect(tr.x / tex.width, tr.y / tex.height, tr.width / tex.width, tr.height / tex.height);
-                    }
+                    ResolveIcon(face._icon, info, i == 0);
                     _faces[i] = info;
                 }
             });
             return count;
+        }
+
+        static List<UnityEngine.U2D.SpriteAtlas> _atlases;
+
+        // Portraits live in sprite atlases. Depending on how the atlas is packed the sprite
+        // may not hand out its texture directly, so we try a few ways to get pixels for it.
+        static void ResolveIcon(Sprite sp, FaceInfo info, bool log)
+        {
+            string why = "ok";
+            try
+            {
+                if (sp == null) { why = "no sprite"; return; }
+
+                Texture2D tex = null;
+                try { tex = sp.texture; } catch { }
+                if (tex == null)
+                {
+                    why = "sprite has no texture, asking the atlases";
+                    if (_atlases == null)
+                    {
+                        _atlases = new List<UnityEngine.U2D.SpriteAtlas>();
+                        foreach (var o in Resources.FindObjectsOfTypeAll(Il2CppType.Of<UnityEngine.U2D.SpriteAtlas>()))
+                        {
+                            var a = o.TryCast<UnityEngine.U2D.SpriteAtlas>();
+                            if (a != null) _atlases.Add(a);
+                        }
+                    }
+                    string name = sp.name.Replace("(Clone)", "").Trim();
+                    foreach (var a in _atlases)
+                    {
+                        if (a == null || !a.CanBindTo(sp)) continue;
+                        var s2 = a.GetSprite(name);
+                        if (s2 != null && s2.texture != null) { sp = s2; tex = s2.texture; break; }
+                    }
+                }
+                if (tex == null) { why += ", none had it"; return; }
+
+                Rect uv;
+                try
+                {
+                    var tr = sp.textureRect;
+                    uv = new Rect(tr.x / tex.width, tr.y / tex.height, tr.width / tex.width, tr.height / tex.height);
+                }
+                catch
+                {
+                    // tightly packed sprite: take the bounds of its UVs instead
+                    var uvs = sp.uv;
+                    float minX = 1, minY = 1, maxX = 0, maxY = 0;
+                    for (int k = 0; k < uvs.Length; k++)
+                    {
+                        minX = Math.Min(minX, uvs[k].x); minY = Math.Min(minY, uvs[k].y);
+                        maxX = Math.Max(maxX, uvs[k].x); maxY = Math.Max(maxY, uvs[k].y);
+                    }
+                    uv = new Rect(minX, minY, maxX - minX, maxY - minY);
+                    why = "used uv bounds";
+                }
+                info.Tex = tex;
+                info.Uv = uv;
+            }
+            catch (Exception e) { why = e.GetType().Name + ": " + e.Message; }
+            finally
+            {
+                if (log) Plugin.Log.LogInfo($"Teen portrait 0: {why}" + (info.Tex != null ? $" tex={info.Tex.name} {info.Tex.width}x{info.Tex.height} uv={info.Uv}" : ""));
+            }
         }
 
         static void DrawFace(Rect rect, int id, bool current)

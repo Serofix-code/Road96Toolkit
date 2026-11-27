@@ -113,8 +113,19 @@ namespace Road96Toolkit
             r = Gui.Row(4);
             GUI.Label(r[0], $"Speed: {Time.timeScale:0.##}x");
             if (GUI.Button(r[1], "Pause")) Time.timeScale = 0f;
-            if (GUI.Button(r[2], "Normal")) Time.timeScale = 1f;
-            if (GUI.Button(r[3], "2x")) Time.timeScale = 2f;
+            if (GUI.Button(r[2], "Normal")) { Time.timeScale = 1f; FixSound(false); }
+            if (GUI.Button(r[3], "2x")) { Time.timeScale = 2f; FixSound(false); }
+
+            Gui.Space();
+            Gui.Header("Minigames");
+            if (Gui.Toggle("Show the ball in the cup game" + (CupEsp.Found > 0 ? "  (game found)" : ""), Plugin.CupEsp.Value))
+                Plugin.CupEsp.Value = !Plugin.CupEsp.Value;
+
+            Gui.Space();
+            Gui.Header("Sound");
+            var snd = Gui.Row(1f, 1f);
+            if (GUI.Button(snd[0], "Fix sound")) FixSound(true);
+            if (GUI.Button(snd[1], "Sound info to log")) SoundInfo();
 
             if (Gui.Toggle("Hide game HUD (" + Plugin.HideUiKey + ")", _hudHidden)) ToggleHud();
 
@@ -127,6 +138,52 @@ namespace Road96Toolkit
                     dm.ToggleVisible();
                 });
             }
+        }
+
+        // The game pauses all audio while the game speed is 0, and does not always undo it.
+        public static void FixSound(bool loud)
+        {
+            Game.Try("Fix sound", () =>
+            {
+                if (Time.timeScale <= 0f) Time.timeScale = 1f;
+                AudioListener.pause = false;
+                if (AudioListener.volume < 0.01f) AudioListener.volume = 1f;
+
+                // there must be exactly one listener switched on
+                var all = UnityEngine.Object.FindObjectsOfType<AudioListener>();
+                int on = 0;
+                foreach (var l in all) if (l != null && l.isActiveAndEnabled) on++;
+                if (on == 0)
+                {
+                    var cam = Game.MainCamera;
+                    var l = cam != null ? cam.GetComponent<AudioListener>() : null;
+                    if (l == null && cam != null) l = cam.gameObject.AddComponent<AudioListener>();
+                    if (l != null) l.enabled = true;
+                }
+                GameStates.Stack?.ForceUpdateStateOverride();
+            });
+            if (loud) { SoundInfo(); ToolkitBehaviour.Toast("Sound reset. Still silent? Check the Windows volume mixer for Road 96"); }
+        }
+
+        static void SoundInfo()
+        {
+            Game.Try("Sound info", () =>
+            {
+                var log = Plugin.Log;
+                log.LogInfo($"[sound] timeScale={Time.timeScale} paused={AudioListener.pause} volume={AudioListener.volume} output={UnityEngine.AudioSettings.outputSampleRate}Hz speakers={UnityEngine.AudioSettings.speakerMode}");
+                foreach (var l in UnityEngine.Object.FindObjectsOfType<AudioListener>())
+                    log.LogInfo($"[sound] listener on {l.gameObject.name} enabled={l.isActiveAndEnabled}");
+                var am = BlueEyes.Audio.AudioManager.Instance;
+                if (am != null)
+                {
+                    log.LogInfo($"[sound] snapshots on stack: {am._snapshotStack?.Count}");
+                    var mixer = am._mixer;
+                    if (mixer != null)
+                        foreach (var p in new[] { "MasterVolume", "Master", "MusicVolume", "SFXVolume", "VoiceVolume" })
+                            if (mixer.GetFloat(p, out float v)) log.LogInfo($"[sound] mixer {p} = {v} dB");
+                }
+                log.LogInfo("[sound] game override: " + GameStates.Stack?.LastOverride.ToDebugString());
+            });
         }
 
         public static void ToggleHud()
