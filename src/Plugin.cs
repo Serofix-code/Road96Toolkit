@@ -1,3 +1,4 @@
+using System;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -11,7 +12,7 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.2.0";
+        public const string Version = "1.3.0";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;
@@ -23,9 +24,14 @@ namespace Road96Toolkit
         internal static ConfigEntry<bool> BlockGameFlyMode;
         internal static ConfigEntry<bool> CupEsp;
 
-        static Hotkey BindKey(ConfigFile cfg, string name, string def, string desc)
+        static bool _upgradeKeys;
+
+        static Hotkey BindKey(ConfigFile cfg, string name, string def, string desc, string oldDefault = null)
         {
             var entry = cfg.Bind("Shortcuts", name, def, desc + ". Examples: F1, Ctrl+F2, Shift+Alt+K. Leave empty to turn it off.");
+            // older versions used other default keys, move people over unless they picked their own
+            if (_upgradeKeys && oldDefault != null && string.Equals(entry.Value?.Trim(), oldDefault, StringComparison.OrdinalIgnoreCase))
+                entry.Value = def;
             var key = Hotkey.Parse(entry.Value);
             entry.SettingChanged += (_, _) =>
             {
@@ -40,10 +46,14 @@ namespace Road96Toolkit
             Instance = this;
             Log = base.Log;
 
+            var cfgVersion = Config.Bind("General", "ConfigVersion", 1, "Used by the toolkit to update old settings, leave it alone");
+            _upgradeKeys = cfgVersion.Value < 2;
+            cfgVersion.Value = 2;
+
             MenuKey = BindKey(Config, "Menu", "F1", "Open or close the toolkit window");
-            FreecamKey = BindKey(Config, "Freecam", "Ctrl+F2", "Turn the free camera on or off");
-            NoclipKey = BindKey(Config, "Noclip", "Ctrl+F3", "Turn noclip on or off (fly the teen through walls)");
-            PickKey = BindKey(Config, "PickObject", "F3", "Select whatever is in the middle of the screen for the scene editor");
+            FreecamKey = BindKey(Config, "Freecam", "F2", "Turn the free camera on or off", "Ctrl+F2");
+            NoclipKey = BindKey(Config, "Noclip", "F3", "Turn noclip on or off (fly the teen through walls)", "Ctrl+F3");
+            PickKey = BindKey(Config, "PickObject", "F5", "Select whatever is in the middle of the screen for the scene editor", "F3");
             HideUiKey = BindKey(Config, "HideHud", "F4", "Hide or show the game HUD");
             DevMenuKey = BindKey(Config, "DeveloperMenu", "F6", "Open the game's own developer debug menu");
 

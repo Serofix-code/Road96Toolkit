@@ -10,7 +10,8 @@ namespace Road96Toolkit
 
         internal static ToolkitBehaviour Instance;
 
-        static readonly string[] TabNames = { "Story", "Teen", "Abilities", "World", "Freecam", "Spawner", "Scene editor", "Dev menu" };
+        static readonly string[] TabNames = { "Story", "Levels", "Teen", "Abilities", "World", "Freecam", "Spawner", "Scene editor", "Dev menu" };
+        const int DevTab = 8;
         int _tab;
 
         bool _open;
@@ -47,8 +48,8 @@ namespace Road96Toolkit
             if (Plugin.HideUiKey.Pressed()) WorldTab.ToggleHud();
             if (Plugin.DevMenuKey.Pressed())
             {
-                if (_open && _tab == 7) SetOpen(false);
-                else { _tab = 7; if (!_open) SetOpen(true); }
+                if (_open && _tab == DevTab) SetOpen(false);
+                else { _tab = DevTab; if (!_open) SetOpen(true); }
             }
 
             if (!_open && !Freecam.Active && InputHelper.Down(KeyCode.Backspace) && GameStates.Has("GodModeState"))
@@ -59,6 +60,8 @@ namespace Road96Toolkit
             Noclip.Update();
             CupEsp.Update();
             SceneEditor.Update();
+            CharacterCatalog.Update();
+            NpcPreview.Update();
             CursorFix();
         }
 
@@ -133,7 +136,7 @@ namespace Road96Toolkit
             }
 
             if (Noclip.Active && !_open)
-                GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), $"Noclip  |  WASD fly where you look  Space up  Ctrl down  Shift fast  Alt slow  Scroll speed ({Noclip.Speed:0.0})  {Plugin.NoclipKey} to stop");
+                GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), $"Noclip  |  WASD fly where you look  Space/E up  Q down  Shift fast  Alt slow  Scroll speed ({Noclip.Speed:0.0})  {Plugin.NoclipKey} to stop");
 
             if (Freecam.Active && !_open)
                 GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), "Freecam  |  WASD move  Q/E down/up  Shift fast  Ctrl slow  Scroll speed  " + Plugin.FreecamKey + " or Backspace for teen view");
@@ -151,11 +154,11 @@ namespace Road96Toolkit
             Gui.Begin(inner);
 
             // two rows of tabs
-            var r1 = Gui.Row(4);
+            var r1 = Gui.Row(5);
             var r2 = Gui.Row(4);
             for (int i = 0; i < TabNames.Length; i++)
             {
-                var rect = i < 4 ? r1[i] : r2[i - 4];
+                var rect = i < 5 ? r1[i] : r2[i - 5];
                 string label = i == _tab ? "[ " + TabNames[i] + " ]" : TabNames[i];
                 if (GUI.Button(rect, label)) _tab = i;
             }
@@ -166,13 +169,14 @@ namespace Road96Toolkit
                 switch (_tab)
                 {
                     case 0: StoryTab.Draw(); break;
-                    case 1: TeenTab.Draw(); break;
-                    case 2: AbilitiesTab.Draw(); break;
-                    case 3: WorldTab.Draw(); break;
-                    case 4: Freecam.Draw(); break;
-                    case 5: Spawner.Draw(); break;
-                    case 6: SceneEditor.Draw(); break;
-                    case 7: DevMenuTab.Draw(); break;
+                    case 1: LevelsTab.Draw(); break;
+                    case 2: TeenTab.Draw(); break;
+                    case 3: AbilitiesTab.Draw(); break;
+                    case 4: WorldTab.Draw(); break;
+                    case 5: Freecam.Draw(); break;
+                    case 6: Spawner.Draw(); break;
+                    case 7: SceneEditor.Draw(); break;
+                    case 8: DevMenuTab.Draw(); break;
                 }
             }
             catch (Exception e)
@@ -180,6 +184,8 @@ namespace Road96Toolkit
                 Gui.Label("This tab hit an error: " + e.GetType().Name);
                 Gui.Label(e.Message);
             }
+
+            try { NpcPreview.Draw(_window); } catch { }
         }
 
         void HandleDrag(float s)

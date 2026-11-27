@@ -86,8 +86,8 @@ namespace Road96Toolkit
             if (InputHelper.Held(KeyCode.S)) move -= ct.forward;
             if (InputHelper.Held(KeyCode.D)) move += ct.right;
             if (InputHelper.Held(KeyCode.A)) move -= ct.right;
-            if (InputHelper.Held(KeyCode.Space)) move += Vector3.up;
-            if (InputHelper.Held(KeyCode.LeftControl)) move += Vector3.down;
+            if (InputHelper.Held(KeyCode.Space) || InputHelper.Held(KeyCode.E)) move += Vector3.up;
+            if (InputHelper.Held(KeyCode.Q)) move += Vector3.down;
             if (move.sqrMagnitude > 1f) move.Normalize();
 
             _player.transform.position += move * sp * Time.unscaledDeltaTime;

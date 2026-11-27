@@ -21,6 +21,7 @@ namespace Road96Toolkit
             public Texture2D Tex;
             public Rect Uv;
             public NB.Gender Gender;
+            public bool HadTex;
         }
         static readonly Dictionary<int, FaceInfo> _faces = new Dictionary<int, FaceInfo>();
         static IntPtr _facesFrom = IntPtr.Zero;
@@ -123,6 +124,7 @@ namespace Road96Toolkit
                     var face = settings.GetPlayerFaceById(i);
                     var info = new FaceInfo { Gender = face._gender };
                     ResolveIcon(face._icon, info, i == 0);
+                    info.HadTex = info.Tex != null;
                     _faces[i] = info;
                 }
             });
@@ -183,8 +185,9 @@ namespace Road96Toolkit
                     uv = new Rect(minX, minY, maxX - minX, maxY - minY);
                     why = "used uv bounds";
                 }
-                info.Tex = tex;
-                info.Uv = uv;
+                info.Tex = Bake(tex, uv) ?? tex;
+                info.Uv = info.Tex == tex ? uv : new Rect(0, 0, 1, 1);
+                if (info.Tex != tex) why += ", copied";
             }
             catch (Exception e) { why = e.GetType().Name + ": " + e.Message; }
             finally
@@ -193,24 +196,56 @@ namespace Road96Toolkit
             }
         }
 
+        // Copy the portrait out of the atlas into a texture we own, so the game unloading
+        // its atlas (or Unity collecting it) can't blank our pictures.
+        static Texture2D Bake(Texture2D src, Rect uv)
+        {
+            RenderTexture rt = null;
+            var prev = RenderTexture.active;
+            try
+            {
+                int w = Math.Max(8, (int)(uv.width * src.width));
+                int h = Math.Max(8, (int)(uv.height * src.height));
+                rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32);
+                Graphics.Blit(src, rt, new Vector2(uv.width, uv.height), new Vector2(uv.x, uv.y));
+                RenderTexture.active = rt;
+                var t = new Texture2D(w, h, TextureFormat.RGBA32, false);
+                t.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+                t.Apply();
+                t.hideFlags = HideFlags.HideAndDontSave;
+                return t;
+            }
+            catch (Exception e)
+            {
+                if (!_bakeLogged) { _bakeLogged = true; Plugin.Log.LogWarning("Portrait copy failed: " + e.Message); }
+                return null;
+            }
+            finally
+            {
+                RenderTexture.active = prev;
+                if (rt != null) RenderTexture.ReleaseTemporary(rt);
+            }
+        }
+        static bool _bakeLogged, _drawLogged;
+
         static void DrawFace(Rect rect, int id, bool current)
         {
             GUI.Box(new Rect(rect.x, rect.y, rect.width, 90), current ? "YOU" : "");
             if (!_faces.TryGetValue(id, out var fi)) return;
+            if (fi.Tex == null && fi.HadTex) { _facesFrom = IntPtr.Zero; fi.HadTex = false; }
             if (fi.Tex != null)
             {
                 float size = Math.Min(rect.width, 86);
                 var img = new Rect(rect.x + (rect.width - size) / 2f, rect.y + 2, size, 86);
                 try
                 {
-                    if (fi.Tex == null) throw new NullReferenceException();
-                    GUI.DrawTextureWithTexCoords(img, fi.Tex, fi.Uv);
+                    if (fi.Uv.width >= 0.999f && fi.Uv.height >= 0.999f) GUI.DrawTexture(img, fi.Tex, ScaleMode.ScaleToFit);
+                    else GUI.DrawTextureWithTexCoords(img, fi.Tex, fi.Uv);
                 }
-                catch
+                catch (Exception e)
                 {
-                    // the game unloaded the portrait atlas on a scene change, grab them again next frame
-                    _facesFrom = IntPtr.Zero;
-                    fi.Tex = null;
+                    if (!_drawLogged) { _drawLogged = true; Plugin.Log.LogWarning("Portrait draw failed: " + e.GetType().Name + " " + e.Message); }
+                    try { GUI.Label(img, fi.Tex); } catch { }
                 }
             }
             GUI.Label(new Rect(rect.x + 3, rect.y + 2, 40, 20), fi.Gender == NB.Gender.Male ? "M" : "F");

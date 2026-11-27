@@ -143,7 +143,7 @@ namespace Road96Toolkit
             Gui.Header("Noclip");
             Gui.Label("Fly your teen through walls. You stay in control and can stop anywhere.");
             if (Gui.Toggle("Noclip (" + Plugin.NoclipKey + ")", Noclip.Active)) Noclip.Toggle();
-            Gui.Label("WASD fly where you look, Space up, Ctrl down, Shift fast, Alt slow, wheel speed");
+            Gui.Label("WASD fly where you look, Space or E up, Q down, Shift fast, Alt slow, wheel speed");
 
             Gui.Space();
             Gui.Header("Freecam controls");

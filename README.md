@@ -1,6 +1,6 @@
 # Road96 Toolkit
 
-A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, a scene editor, a character spawner, the developers' debug menu and full control over the story: pick the scenario, the ending, which teen you play, their gender and age, your money and your abilities.
+A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, noclip, a scene editor, a character spawner with a 3D preview, a level and mission starter, the developers' debug menu and full control over the story: pick the scenario, the ending, which teen you play, their gender and age, your money and your abilities.
 
 
 ## Features
@@ -12,8 +12,13 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * End the current trip with any ending: passed the border, arrested at the border, died, arrested, died at the border
 * Election gauges (Revolutionary, Individualist, Moderate): raise or lower them, or make one win to steer the final ending
 
+**Levels**
+* Start any mission in the game straight away, from the first hitchhike to the last border
+* Load any level on its own, including the developers' test and prototype levels left in the build
+* Raw scenes: add any of the 178 scene files to the world, or unload them again
+
 **Teen**
-* See all the teens with their portraits and play as any of them
+* See all the teens with their portraits and play as any of them (portraits fixed in 1.3)
 * Switch gender (picks a matching teen so the portrait fits)
 * Random teen button
 * Age chooser (one click ages from 12 to 21)
@@ -36,11 +41,11 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Ball ESP for the cup game (the guy who shuffles the cans): a red box sits on the can that hides the ball and follows it through the whole shuffle
 
 **Noclip**
-* Fly your teen through walls and floors with WASD where you look, Space up, Ctrl down, Shift fast, Alt slow
+* Fly your teen through walls and floors with WASD where you look, Space or E up, Q down, Shift fast, Alt slow
 * Unlike the freecam you are the one moving, so you can land anywhere and keep playing
 
 **Freecam**
-* Only turns on from its shortcut (Ctrl+F2) or the button in the menu
+* Only turns on from its shortcut (F2) or the button in the menu
 * Fly anywhere with WASD, Q and E, Shift and Ctrl for speed, mouse wheel to tune it
 * Field of view and roll for screenshots
 * Back to teen view with one button or Backspace
@@ -49,11 +54,13 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 
 **Character spawner**
 * Lists every character the current area has loaded (and any other prefab in memory)
+* Other levels: pick any level and the toolkit copies its characters for you, so you can spawn people that are not in the area you are in. The level loads out of sight for a second and is unloaded again
+* 3D preview: a small window next to the menu shows the character turning around before you spawn it, with zoom
 * Spawns a copy in front of the camera, standing still or with its normal behaviour
 * Edit or delete anything you spawned
 
 **Scene editor**
-* Browse the loaded scenes as a tree, or press F3 to grab whatever is in the middle of the screen
+* Browse the loaded scenes as a tree, or press F5 to grab whatever is in the middle of the screen
 * Move, rotate and scale with fine or coarse steps, hide, duplicate, delete
 * Carry an object with the camera, drop it to the ground, make it face you
 * Save your changes per scene and load them again later
@@ -67,14 +74,14 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 | Key | What it does |
 |-----|--------------|
 | F1 | Open or close the menu |
-| Ctrl+F2 | Freecam on or off |
+| F2 | Freecam on or off |
 | Backspace | Leave the freecam and go back to the teen's view |
-| Ctrl+F3 | Noclip on or off |
-| F3 | Select the object in the middle of the screen |
+| F3 | Noclip on or off |
+| F5 | Select the object in the middle of the screen |
 | F4 | Hide or show the HUD |
 | F6 | Open the developer menu tab |
 
-All shortcuts can be changed in `BepInEx/config/serofix.road96toolkit.cfg` after the first launch. Modifiers work too, for example `Ctrl+Shift+F`.
+All shortcuts can be changed in `BepInEx/config/serofix.road96toolkit.cfg` after the first launch. Modifiers work too, for example `Ctrl+Shift+F`. If you never changed the old Ctrl+F2 and Ctrl+F3 defaults, 1.3 moves them to F2 and F3 by itself.
 
 ## Install
 
@@ -91,6 +98,8 @@ If you also have MelonLoader installed, remove or rename its `version.dll` first
 * The teen's age only appears on the teen cards in the main menu and on loading screens, so that is where the age chooser shows up.
 * Teen and gender changes show on the trip map, the posters and the loading screens. You play in first person so you will not see yourself in game.
 * Time of day and area changes are picked up by the next scenario, not the one you are in.
+* Starting a mission from the Levels tab works best during a trip. "Load the level only" skips the story setup, so some levels will be empty or stuck, test levels most of all.
+* Copying characters from other levels is experimental. A level can run some of its own logic in the second it is loaded, so save first.
 * Spawned characters are copies. They look and animate like the original but are not part of the story, so they will not talk to you.
 * Ending a trip early saves it like a normal ending. Back up your saves first if you care about them: `%USERPROFILE%\AppData\LocalLow\DigixArt\Road 96`
 
