@@ -181,6 +181,12 @@ How it is put together:
 * One file per tab or feature (`StoryTab.cs`, `LevelsTab.cs`, `DevView.cs`, `ChoiceHints.cs` and so on)
 * `src/Gui.cs` is a small layout helper, since the game strips Unity's automatic GUI layout
 
+## Make your own mods
+
+The [modding](modding) folder is for people who want to write their own Road 96 mod. It has the game classes and calls I found while making this (facts, scenarios, endings, money, items, tapes, sound, saves, the player), Harmony hooks that work, a small example mod that builds as is, and a tool that lists every field and method of any game class.
+
+Also see [Road96 Mixtape](https://github.com/Serofix-code/Road96Mixtape), which adds your own music as cassette tapes.
+
 ## Building
 
 You need the .NET SDK (6 or newer) and a Road 96 install with BepInEx 6 IL2CPP that has been started once (that creates `BepInEx/interop`).

@@ -16,6 +16,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- the modding folder has its own projects -->
+    <Compile Remove="modding/**" />
+    <None Remove="modding/**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="$(GameDir)\BepInEx\core\BepInEx.Core.dll" Private="false" />
     <Reference Include="$(GameDir)\BepInEx\core\BepInEx.Unity.IL2CPP.dll" Private="false" />
     <Reference Include="$(GameDir)\BepInEx\core\BepInEx.Unity.Common.dll" Private="false" />
