@@ -97,8 +97,18 @@ namespace Road96Toolkit
             {
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
+                _showingCursor = true;
+            }
+            else if (_showingCursor)
+            {
+                // dev view, photo mode or the command bar just closed: give the mouse back to the game
+                _showingCursor = false;
+                Game.Try("Cursor restore", () => GameStates.Stack?.ForceUpdateStateOverride());
+                _cursorFixUntil = Time.unscaledTime + 1f;
             }
         }
+
+        bool _showingCursor;
 
         void SetOpen(bool open)
         {
