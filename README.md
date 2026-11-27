@@ -122,4 +122,4 @@ A Release build copies the DLL into `BepInEx/plugins/Road96Toolkit` for you. Clo
 
 ## License
 
-MIT, see LICENSE. Road 96 belongs to DigixArt. This project ships no game files you need a legal copy of the game to run this mod.
+MIT, see LICENSE. Road 96 belongs to DigixArt. This project ships no game files. You need a legal copy of the game to run this mod.
