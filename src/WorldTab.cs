@@ -9,6 +9,7 @@ namespace Road96Toolkit
     internal static class WorldTab
     {
         static bool _hudHidden;
+        public static bool HudHidden => _hudHidden;
         static readonly int[] Amounts = { 1, 5, 20, 100, 500, 1000 };
         static int _custom = 50;
 

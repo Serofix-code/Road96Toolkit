@@ -21,6 +21,8 @@ namespace Road96Toolkit
         static bool _lockPlayer = true;
 
         public static Vector3 Position => _pos;
+        public static float Fov { get => _fov < 0 ? 60f : _fov; set => _fov = value; }
+        public static float Roll { get => _roll; set => _roll = value; }
         public static Quaternion Rotation => Quaternion.Euler(_pitch, _yaw, _roll);
 
         public static void Toggle()
@@ -90,7 +92,7 @@ namespace Road96Toolkit
         {
             if (!Active) return;
             if (_cam == null) { Disable(); return; }
-            if (!ToolkitBehaviour.IsOpen && !DevView.Active && InputHelper.Down(KeyCode.Backspace)) { GameStates.BackToTeenView(); return; }
+            if (!ToolkitBehaviour.IsOpen && !DevView.Active && !PhotoMode.Active && InputHelper.Down(KeyCode.Backspace)) { GameStates.BackToTeenView(); return; }
 
             float dt = Time.unscaledDeltaTime;
 
@@ -99,7 +101,8 @@ namespace Road96Toolkit
                 _speed = Mathf.Clamp(_speed * (scroll > 0 ? 1.2f : 1f / 1.2f), 0.2f, 400f);
 
             // look: always while the toolkit window is closed, right mouse while it is open
-            if ((!ToolkitBehaviour.IsOpen && !DevView.Active) || InputHelper.RightMouseHeld())
+            bool panelUp = ToolkitBehaviour.IsOpen || DevView.Active || (PhotoMode.Active && PhotoMode.PanelVisible);
+            if (!panelUp || InputHelper.RightMouseHeld())
             {
                 var d = InputHelper.MouseDelta();
                 _yaw += d.x * 0.1f;
@@ -140,6 +143,7 @@ namespace Road96Toolkit
             if (GUI.Button(top[1], "Back to teen view")) GameStates.BackToTeenView();
             if (Gui.Toggle("Lock the player while flying", _lockPlayer)) _lockPlayer = !_lockPlayer;
             if (Gui.Toggle("Dev view: freecam with a spawn palette and a character editor (" + Plugin.DevViewKey + ")", DevView.Active)) DevView.Toggle();
+            if (Gui.Toggle("Photo mode: pause, effects, filters and screenshots (" + Plugin.PhotoKey + ")", PhotoMode.Active)) PhotoMode.Toggle();
             Gui.Space();
             Gui.Header("Noclip");
             Gui.Label("Fly your teen through walls. You stay in control and can stop anywhere.");

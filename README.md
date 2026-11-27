@@ -1,6 +1,6 @@
 # Road96 Toolkit
 
-A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, noclip, a scene editor, a character spawner with a 3D preview, a level and mission starter, a dev view editor, choice hints, a collectible giver, a save manager, the developers' debug menu and full control over the story: pick the scenario, the ending, which teen you play, their gender and age, your money and your abilities.
+A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, a photo mode, noclip, a scene editor, a character spawner with a 3D preview, a level and mission starter, a dev view editor, choice hints, a collectible giver, a save manager, the developers' debug menu and full control over the story: pick the scenario, the ending, which teen you play, their gender and age, your money and your abilities.
 
 
 ## Features
@@ -66,6 +66,16 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Teleport your teen to where the camera is
 * The game hides a developer fly mode that can switch on by itself. The toolkit turns it off when that happens (you can allow it in the config)
 
+**Photo mode** (F8)
+* Pauses the game, hides the HUD and gives you the free camera. Hold the right mouse button to look around
+* Field of view, roll and exposure
+* Filters (black and white, warm, cold, vintage, dramatic, dreamy) plus contrast, saturation, warmth, hue, vignette and film grain
+* Depth of field with a focus distance, a blur amount and an Aim button that focuses on whatever is in the middle of the screen
+* Turn the sun and change its height
+* Rule of thirds grid
+* P takes a photo, H hides the panel for a clean view. The toolkit hides its own UI in the photo. Pick 1x, 2x or 4x size (2x and 4x depend on the game's renderer, use 1x if they come out wrong)
+* Photos go to `Pictures/Road 96 Photos`
+
 **Dev view** (F7)
 * An editor mode built on the freecam. Hold the right mouse button to look around, the cursor stays free for clicking
 * Spawn palette on the left with the characters of this level, characters copied from other levels, and props. Rest the mouse on a name for the 3D preview
@@ -104,6 +114,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 | F4 | Hide or show the HUD |
 | F6 | Open the developer menu tab |
 | F7 | Dev view on or off |
+| F8 | Photo mode on or off (P photo, H hide panel) |
 
 All shortcuts can be changed in `BepInEx/config/serofix.road96toolkit.cfg` after the first launch. Modifiers work too, for example `Ctrl+Shift+F`. If you never changed the old Ctrl+F2 and Ctrl+F3 defaults, 1.3 moves them to F2 and F3 by itself.
 

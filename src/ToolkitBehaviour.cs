@@ -50,6 +50,7 @@ namespace Road96Toolkit
             if (Plugin.NoclipKey.Pressed()) Noclip.Toggle();
             if (Plugin.PickKey.Pressed()) SceneEditor.PickUnderCrosshair();
             if (Plugin.DevViewKey.Pressed()) DevView.Toggle();
+            if (Plugin.PhotoKey.Pressed()) PhotoMode.Toggle();
             if (Plugin.HideUiKey.Pressed()) WorldTab.ToggleHud();
             if (Plugin.DevMenuKey.Pressed())
             {
@@ -72,13 +73,14 @@ namespace Road96Toolkit
             ChoiceHints.Update();
             DevView.Update();
             SavesTab.Update();
+            PhotoMode.Update();
             CursorFix();
         }
 
         void LateUpdate()
         {
             Freecam.LateUpdate();
-            if (_open || DevView.Active)
+            if (_open || DevView.Active || (PhotoMode.Active && PhotoMode.PanelVisible))
             {
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
@@ -132,6 +134,8 @@ namespace Road96Toolkit
 
         void OnGUI()
         {
+            // clean frame for photos
+            if (PhotoMode.HideEverything) return;
             CupEsp.Draw();
 
             float s = Mathf.Clamp(Plugin.MenuScale.Value, 0.5f, 3f);
@@ -148,11 +152,12 @@ namespace Road96Toolkit
             LevelPopup.Draw();
             ChoiceHints.Draw();
             DevView.Draw(s);
+            PhotoMode.Draw(s);
 
             if (Noclip.Active && !_open)
                 GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), $"Noclip  |  WASD fly where you look  Space/E up  Q down  Shift fast  Alt slow  Scroll speed ({Noclip.Speed:0.0})  {Plugin.NoclipKey} to stop");
 
-            if (Freecam.Active && !_open && !DevView.Active)
+            if (Freecam.Active && !_open && !DevView.Active && !PhotoMode.Active)
                 GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), "Freecam  |  WASD move  Q/E down/up  Shift fast  Ctrl slow  Scroll speed  " + Plugin.FreecamKey + " or Backspace for teen view");
 
             if (!_open) return;

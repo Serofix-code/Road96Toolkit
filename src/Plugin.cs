@@ -12,7 +12,7 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.5.0";
+        public const string Version = "1.6.0";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;
@@ -29,6 +29,8 @@ namespace Road96Toolkit
         internal static ConfigEntry<float> LevelNamePopupSeconds;
         internal static Hotkey DevViewKey;
         internal static ConfigEntry<bool> AutoBackup;
+        internal static Hotkey PhotoKey;
+        internal static ConfigEntry<bool> PhotoPause;
         internal static ConfigEntry<int> AutoBackupCount;
         internal static ConfigEntry<bool> PreviewOnHover;
 
@@ -64,6 +66,7 @@ namespace Road96Toolkit
             PickKey = BindKey(Config, "PickObject", "F5", "Select whatever is in the middle of the screen for the scene editor", "F3");
             HideUiKey = BindKey(Config, "HideHud", "F4", "Hide or show the game HUD");
             DevMenuKey = BindKey(Config, "DeveloperMenu", "F6", "Open the game's own developer debug menu");
+            PhotoKey = BindKey(Config, "PhotoMode", "F8", "Photo mode: pause, free camera, effects and screenshots");
             DevViewKey = BindKey(Config, "DevView", "F7", "Dev view: freecam with a spawn palette, click to place and edit characters");
 
             FreezeWithMenu = Config.Bind("General", "FreezePlayerWhileMenuOpen", true, "Stop the player from walking and looking around while the window is open");
@@ -77,6 +80,7 @@ namespace Road96Toolkit
             ChoiceHints = Config.Bind("Cheats", "ChoiceHints", false, "Show what every dialogue choice does (karma, vote, money, odds), which one is best, and keypad codes");
             LevelNamePopup = Config.Bind("General", "LevelNamePopup", true, "Show the name of a level for a few seconds after it loads");
             LevelNamePopupSeconds = Config.Bind("General", "LevelNamePopupSeconds", 4f, "How long the level name stays on screen");
+            PhotoPause = Config.Bind("PhotoMode", "PauseGame", true, "Pause the game when photo mode opens");
             AutoBackup = Config.Bind("Saves", "AutoBackup", true, "Copy the save every time the game writes it, to BepInEx/config/Road96Toolkit/saves/auto");
             AutoBackupCount = Config.Bind("Saves", "AutoBackupCount", 15, "How many automatic backups to keep");
             SavesTab.ApplyPendingRestore();
