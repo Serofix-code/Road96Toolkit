@@ -1,6 +1,6 @@
 # Road96 Toolkit
 
-A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, noclip, a scene editor, a character spawner with a 3D preview, a level and mission starter, a dev view editor, choice hints, a collectible giver, the developers' debug menu and full control over the story: pick the scenario, the ending, which teen you play, their gender and age, your money and your abilities.
+A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, noclip, a scene editor, a character spawner with a 3D preview, a level and mission starter, a dev view editor, choice hints, a collectible giver, a save manager, the developers' debug menu and full control over the story: pick the scenario, the ending, which teen you play, their gender and age, your money and your abilities.
 
 
 ## Features
@@ -20,6 +20,13 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 **Items**
 * Collectible giver: every cassette tape in the game, see which ones you have, give or take any of them, or give them all at once
 * Every other inventory item too (vouchers, quest items and so on)
+
+**Saves**
+* Snapshots: save a named copy of your trip whenever you want, with a summary (trip, last scenario, money, days, teen, tapes)
+* Automatic backups every time the game saves, the last 15 are kept (change it in the config)
+* Put any snapshot back from the main menu, or have it put back the next time you start the game
+* The save that is replaced gets backed up first, so a restore can always be undone
+* Snapshots live in `BepInEx/config/Road96Toolkit/saves`
 
 **Teen**
 * See all the teens with their portraits and play as any of them (portraits fixed in 1.3)
@@ -118,7 +125,7 @@ If you also have MelonLoader installed, remove or rename its `version.dll` first
 * Starting a mission from the Levels tab works best during a trip. "Load the level only" skips the story setup, so some levels will be empty or stuck, test levels most of all.
 * Copying characters from other levels is experimental. A level can run some of its own logic in the second it is loaded, so save first.
 * Spawned characters are copies. They look and animate like the original but are not part of the story, so they will not talk to you.
-* Ending a trip early saves it like a normal ending. Back up your saves first if you care about them: `%USERPROFILE%\AppData\LocalLow\DigixArt\Road 96`
+* Ending a trip early saves it like a normal ending. Make a snapshot in the Saves tab first if you care about it. The game's own save is in `%USERPROFILE%\AppData\LocalLow\DigixArt\Road 96`
 
 ## Open source
 

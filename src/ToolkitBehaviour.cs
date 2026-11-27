@@ -10,9 +10,9 @@ namespace Road96Toolkit
 
         internal static ToolkitBehaviour Instance;
 
-        static readonly string[] TabNames = { "Story", "Levels", "Teen", "Abilities", "Items", "World", "Freecam", "Spawner", "Scene editor", "Dev menu" };
-        const int DevTab = 9;
-        internal const int SceneEditorTab = 8;
+        static readonly string[] TabNames = { "Story", "Levels", "Teen", "Abilities", "Items", "Saves", "World", "Freecam", "Spawner", "Scene editor", "Dev menu" };
+        const int DevTab = 10;
+        internal const int SceneEditorTab = 9;
 
         internal void CloseMenu() { if (_open) SetOpen(false); }
         internal void OpenTab(int tab) { _tab = tab; if (!_open) SetOpen(true); }
@@ -71,6 +71,7 @@ namespace Road96Toolkit
             LevelPopup.Update();
             ChoiceHints.Update();
             DevView.Update();
+            SavesTab.Update();
             CursorFix();
         }
 
@@ -167,11 +168,11 @@ namespace Road96Toolkit
             Gui.Begin(inner);
 
             // two rows of tabs
-            var r1 = Gui.Row(5);
+            var r1 = Gui.Row(6);
             var r2 = Gui.Row(5);
             for (int i = 0; i < TabNames.Length; i++)
             {
-                var rect = i < 5 ? r1[i] : r2[i - 5];
+                var rect = i < 6 ? r1[i] : r2[i - 6];
                 string label = i == _tab ? "[ " + TabNames[i] + " ]" : TabNames[i];
                 if (GUI.Button(rect, label)) _tab = i;
             }
@@ -186,11 +187,12 @@ namespace Road96Toolkit
                     case 2: TeenTab.Draw(); break;
                     case 3: AbilitiesTab.Draw(); break;
                     case 4: ItemsTab.Draw(); break;
-                    case 5: WorldTab.Draw(); break;
-                    case 6: Freecam.Draw(); break;
-                    case 7: Spawner.Draw(); break;
-                    case 8: SceneEditor.Draw(); break;
-                    case 9: DevMenuTab.Draw(); break;
+                    case 5: SavesTab.Draw(); break;
+                    case 6: WorldTab.Draw(); break;
+                    case 7: Freecam.Draw(); break;
+                    case 8: Spawner.Draw(); break;
+                    case 9: SceneEditor.Draw(); break;
+                    case 10: DevMenuTab.Draw(); break;
                 }
             }
             catch (Exception e)

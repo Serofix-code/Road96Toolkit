@@ -12,7 +12,7 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.4.0";
+        public const string Version = "1.5.0";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;
@@ -28,6 +28,8 @@ namespace Road96Toolkit
         internal static ConfigEntry<bool> LevelNamePopup;
         internal static ConfigEntry<float> LevelNamePopupSeconds;
         internal static Hotkey DevViewKey;
+        internal static ConfigEntry<bool> AutoBackup;
+        internal static ConfigEntry<int> AutoBackupCount;
         internal static ConfigEntry<bool> PreviewOnHover;
 
         static bool _upgradeKeys;
@@ -75,6 +77,9 @@ namespace Road96Toolkit
             ChoiceHints = Config.Bind("Cheats", "ChoiceHints", false, "Show what every dialogue choice does (karma, vote, money, odds), which one is best, and keypad codes");
             LevelNamePopup = Config.Bind("General", "LevelNamePopup", true, "Show the name of a level for a few seconds after it loads");
             LevelNamePopupSeconds = Config.Bind("General", "LevelNamePopupSeconds", 4f, "How long the level name stays on screen");
+            AutoBackup = Config.Bind("Saves", "AutoBackup", true, "Copy the save every time the game writes it, to BepInEx/config/Road96Toolkit/saves/auto");
+            AutoBackupCount = Config.Bind("Saves", "AutoBackupCount", 15, "How many automatic backups to keep");
+            SavesTab.ApplyPendingRestore();
             CupEsp = Config.Bind("Cheats", "CupGameBallEsp", true, "Show which cup hides the ball in the shell game");
 
             AddComponent<ToolkitBehaviour>();
