@@ -11,6 +11,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Jump to the border, the final border and the final road (with or without Zoe)
 * End the current trip with any ending: passed the border, arrested at the border, died, arrested, died at the border
 * Election gauges, shown with the candidate they help: Florres (Moderate), Tyrak (Individualist) and the revolution (Revolutionary). Raise or lower them, or make one win to steer the final ending
+* Facts: the game remembers what you did as facts (met Zoe, helped someone, finished a scenario). See which ones you have, search every known one with what needs it, switch any of them on or off, or type in your own. Also `fact <name>` and `facts` in the command bar
 * Answers: while a conversation shows its answers, change what each one does before you pick it: its karma, which candidate it helps and by how much, and its odds (win, 50% or fail)
 * Dice rolls: make every chance in the game always win, always fail, or win at a percent you pick (Story > Answers, the World tab or `odds win` in the command bar)
 * Story tracker: every scenario with a played or not played mark, progress per character, and a filter for the ones you can play right now. Pick one to see what it needs and what blocks it, queue it, or give yourself what it needs in one click
@@ -67,7 +68,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Teleport straight to any character in the level, closest first
 
 **Command bar** (F9)
-* Type instead of clicking: `money 100`, `setmoney 500`, `karma 1`, `energy full`, `tp diner`, `wp diner`, `mission SONYA_6`, `queue SONYA_6`, `level <name>`, `spawn <name>`, `tapes`, `teen 3`, `speed 2`, `snapshot before border`, `freecam`, `noclip`, `photo`, `devview`, `hints`, `autopick`, `esp`, `odds win`
+* Type instead of clicking: `money 100`, `setmoney 500`, `karma 1`, `energy full`, `tp diner`, `wp diner`, `mission SONYA_6`, `queue SONYA_6`, `level <name>`, `spawn <name>`, `tapes`, `teen 3`, `speed 2`, `snapshot before border`, `freecam`, `noclip`, `photo`, `devview`, `hints`, `autopick`, `esp`, `odds win`, `fact <name>`
 * Up and Down go through what you typed before, `help` lists everything
 
 **Third person** (F10, experimental)

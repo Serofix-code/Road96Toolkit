@@ -37,6 +37,8 @@ namespace Road96Toolkit
             ("freecam / noclip / photo / devview", "toggle those modes"),
             ("hints / autopick / esp", "toggle choice hints, auto pick or the item ESP"),
             ("odds win|fail|normal|<percent>", "force every dice roll"),
+            ("fact <name>", "add or remove a story fact (fact add / fact remove to be sure)"),
+            ("facts [search]", "list the facts you have, or every known one matching"),
             ("clear", "clear this box"),
         };
 
@@ -208,6 +210,29 @@ namespace Road96Toolkit
                         else { Plugin.OddsPercent.Value = Mathf.Clamp(F(a.TrimEnd('%')), 0f, 100f); Plugin.OddsMode.Value = 3; }
                         ChoiceHints.Reread();
                         Print("Dice rolls: " + ChoiceEditor.OddsModeText());
+                        break;
+                    }
+                    case "fact":
+                    {
+                        if (ctx == null) { Print("Load a trip first"); break; }
+                        var bits = arg.Split(new[] { ' ' }, 2);
+                        var mode = bits[0].ToLowerInvariant();
+                        string name = arg; bool? want = null;
+                        if (bits.Length > 1 && (mode == "add" || mode == "on")) { want = true; name = bits[1]; }
+                        else if (bits.Length > 1 && (mode == "remove" || mode == "off" || mode == "del")) { want = false; name = bits[1]; }
+                        if (name.Length == 0) { Print("fact <name>"); break; }
+                        var tag = FactsEditor.Find(name) ?? name.Trim();
+                        bool on = want ?? !FactsEditor.Has(tag);
+                        FactsEditor.Set(tag, on);
+                        Print((on ? "Added " : "Removed ") + tag);
+                        break;
+                    }
+                    case "facts":
+                    {
+                        if (ctx == null) { Print("Load a trip first"); break; }
+                        var list = FactsEditor.Matching(arg).Where(t => arg.Length > 0 || FactsEditor.Has(t)).ToList();
+                        foreach (var t in list.Take(25)) Print((FactsEditor.Has(t) ? "[x] " : "[  ] ") + t);
+                        Print(list.Count > 25 ? $"{list.Count} facts, showing 25" : $"{list.Count} facts");
                         break;
                     }
                     case "esp": case "items": ItemEsp.Toggle(); Print("Item ESP " + (Plugin.ItemEsp.Value ? "on" : "off")); break;
