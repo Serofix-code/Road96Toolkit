@@ -2,7 +2,6 @@
 
 A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, a scene editor, a character spawner, the developers' debug menu and full control over the story: pick the scenario, the ending, which teen you play, their gender and age, your money and your abilities.
 
-Single player only. It does not touch online features.
 
 ## Features
 
@@ -104,4 +103,4 @@ A Release build copies the DLL into `BepInEx/plugins/Road96Toolkit` for you. Clo
 
 ## License
 
-MIT, see LICENSE. Road 96 belongs to DigixArt. This project ships no game files.
+MIT, see LICENSE. Road 96 belongs to DigixArt. This project ships no game files you need a legal copy of the game to run this mod.
