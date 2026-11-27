@@ -46,6 +46,48 @@ namespace Road96Toolkit
 
         public static bool Toggle(string text, bool on) => Button((on ? "[ON]  " : "[off]  ") + text);
 
+        // Main tabs are blue, the sections inside a tab orange and small "pick one" choices green,
+        // so they never look like a button that does something.
+        public enum TabKind { Main, Section, Choice }
+
+        public static Color ColorOf(TabKind k) =>
+            k == TabKind.Main ? new Color(0.45f, 0.75f, 1f) : k == TabKind.Section ? new Color(1f, 0.7f, 0.3f) : new Color(0.5f, 1f, 0.55f);
+
+        public static bool Pick(Rect r, string text, bool on, TabKind kind)
+        {
+            var col = ColorOf(kind);
+            var old = GUI.color;
+            GUI.color = on ? col : Color.Lerp(col, new Color(0.6f, 0.6f, 0.6f, 1f), 0.5f);
+            bool hit = GUI.Button(r, on ? "[ " + text + " ]" : text);
+            if (on) GUI.DrawTexture(new Rect(r.x + 3, r.yMax - 3, r.width - 6, 3), Texture2D.whiteTexture);
+            GUI.color = old;
+            return hit;
+        }
+
+        // a coloured line under a row of tabs, so it is clear what sits inside them
+        public static void Divider(TabKind kind)
+        {
+            var old = GUI.color;
+            var c = ColorOf(kind); c.a = 0.8f;
+            GUI.color = c;
+            GUI.DrawTexture(new Rect(X, Y, W, 2), Texture2D.whiteTexture);
+            GUI.color = old;
+            Y += 6;
+        }
+
+        public static int Tabs(string[] names, int sel, TabKind kind, int perRow = 0)
+        {
+            if (perRow <= 0) perRow = names.Length;
+            for (int s = 0; s < names.Length; s += perRow)
+            {
+                var r = Row(perRow);
+                for (int i = s; i < Math.Min(names.Length, s + perRow); i++)
+                    if (Pick(r[i - s], names[i], i == sel, kind)) sel = i;
+            }
+            if (kind != TabKind.Choice) Divider(kind);
+            return sel;
+        }
+
         // Splits the current line into equal cells. Call Next() after drawing the row.
         public static Rect[] Row(int cells, float h = LineH)
         {

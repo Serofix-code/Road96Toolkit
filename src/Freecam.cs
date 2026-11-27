@@ -139,10 +139,7 @@ namespace Road96Toolkit
 
         public static void Draw()
         {
-            var sec = Gui.Row(2);
-            if (GUI.Button(sec[0], _section == 0 ? "[ Freecam and noclip ]" : "Freecam and noclip")) _section = 0;
-            if (GUI.Button(sec[1], _section == 1 ? "[ Third person ]" : "Third person")) _section = 1;
-            Gui.Space(4);
+            _section = Gui.Tabs(new[] { "Freecam and noclip", "Third person" }, _section, Gui.TabKind.Section);
             if (_section == 1) { ThirdPerson.Draw(); return; }
             Gui.Label("Fly the camera anywhere. Your teen stays where they are.");
             Gui.Label("It only turns on from this button or " + Plugin.FreecamKey + " (change it in the config).");

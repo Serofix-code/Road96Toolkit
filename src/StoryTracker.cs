@@ -107,7 +107,7 @@ namespace Road96Toolkit
             var r = Gui.Row(4);
             string[] f = { "All", "Not played", "Played", "Can play now" };
             for (int i = 0; i < 4; i++)
-                if (GUI.Button(r[i], _filter == i ? "[ " + f[i] + " ]" : f[i])) _filter = i;
+                if (Gui.Pick(r[i], f[i], _filter == i, Gui.TabKind.Choice)) _filter = i;
             r = Gui.Row(2f, 1f);
             if (GUI.Button(r[0], "Character: " + (_npc < 0 ? "all" : _npcs[_npc]) + "  (click to cycle)")) { _npc++; if (_npc >= _npcs.Count) _npc = -1; }
             if (GUI.Button(r[1], "Reload")) { Load(); ReadPlayed(ctx); }

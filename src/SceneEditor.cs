@@ -150,10 +150,7 @@ namespace Road96Toolkit
 
         public static void Draw()
         {
-            var sec = Gui.Row(2);
-            if (GUI.Button(sec[0], _section == 0 ? "[ Objects ]" : "Objects")) _section = 0;
-            if (GUI.Button(sec[1], _section == 1 ? "[ Share layouts ]" : "Share layouts")) _section = 1;
-            Gui.Space(4);
+            _section = Gui.Tabs(new[] { "Objects", "Share layouts" }, _section, Gui.TabKind.Section);
             if (_section == 1) { LayoutShare.Draw(); return; }
             if (_sel == null) DrawBrowser();
             else DrawInspector();

@@ -116,7 +116,7 @@ namespace Road96Toolkit
             var m = Gui.Row(1f, 1f, 1f, 0.7f);
             string[] modes = { "Missions", "All levels", "Raw scenes" };
             for (int i = 0; i < 3; i++)
-                if (GUI.Button(m[i], _mode == i ? "[ " + modes[i] + " ]" : modes[i])) { _mode = i; _page = 0; }
+                if (Gui.Pick(m[i], modes[i], _mode == i, Gui.TabKind.Choice)) { _mode = i; _page = 0; }
             if (GUI.Button(m[3], "Rescan")) Scan();
 
             _search = Gui.Search(_search);

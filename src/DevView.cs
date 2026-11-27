@@ -305,7 +305,7 @@ namespace Road96Toolkit
             var r = Gui.Row(3);
             string[] names = { "Here", "Other levels", "Props" };
             for (int i = 0; i < 3; i++)
-                if (GUI.Button(r[i], _source == i ? "[ " + names[i] + " ]" : names[i])) _source = i;
+                if (Gui.Pick(r[i], names[i], _source == i, Gui.TabKind.Choice)) _source = i;
 
             if (_source != _lastSource || (_source == 1 && _catalogSeen != CharacterCatalog.Entries.Count))
             {

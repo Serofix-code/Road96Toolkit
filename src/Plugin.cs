@@ -115,6 +115,7 @@ namespace Road96Toolkit
             var harmony = new HarmonyLib.Harmony(Guid);
             TeenPicker.Patch(harmony);
             ChoiceEditor.Patch(harmony);
+            RunFacts.Patch(harmony);
             AddComponent<ToolkitBehaviour>();
             Log.LogInfo($"{Name} {Version} loaded. Press {MenuKey} in game.");
         }

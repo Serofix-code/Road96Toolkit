@@ -39,6 +39,7 @@ namespace Road96Toolkit
             ("odds win|fail|normal|<percent>", "force every dice roll"),
             ("fact <name>", "add or remove a story fact (fact add / fact remove to be sure)"),
             ("facts [search]", "list the facts you have, or every known one matching"),
+            ("runfacts", "list the facts this teen got or lost on this trip"),
             ("clear", "clear this box"),
         };
 
@@ -233,6 +234,16 @@ namespace Road96Toolkit
                         var list = FactsEditor.Matching(arg).Where(t => arg.Length > 0 || FactsEditor.Has(t)).ToList();
                         foreach (var t in list.Take(25)) Print((FactsEditor.Has(t) ? "[x] " : "[  ] ") + t);
                         Print(list.Count > 25 ? $"{list.Count} facts, showing 25" : $"{list.Count} facts");
+                        break;
+                    }
+                    case "runfacts":
+                    {
+                        if (ctx == null) { Print("Load a trip first"); break; }
+                        var v = RunFacts.Read(ctx);
+                        if (!v.Started) { Print("No trip is going on"); break; }
+                        foreach (var t in v.Gained.Take(20)) Print("+ " + t);
+                        foreach (var t in v.Lost.Take(10)) Print("- " + t);
+                        Print($"{v.Gained.Count} gained, {v.Lost.Count} lost this trip" + (v.FromStart ? "" : " (watching since midway)"));
                         break;
                     }
                     case "esp": case "items": ItemEsp.Toggle(); Print("Item ESP " + (Plugin.ItemEsp.Value ? "on" : "off")); break;

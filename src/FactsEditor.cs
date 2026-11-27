@@ -22,7 +22,9 @@ namespace Road96Toolkit
         static readonly Dictionary<string, Fact> _all = new Dictionary<string, Fact>(StringComparer.Ordinal);
         static List<Fact> _shown = new List<Fact>();
         static readonly HashSet<string> _have = new HashSet<string>(StringComparer.Ordinal);
-        static int _filter; // 0 all, 1 have, 2 do not have
+        static int _filter; // 0 all, 1 have, 2 do not have, 3 this run
+        static RunFacts.View _run = new RunFacts.View();
+        static HashSet<string> _runGained = new HashSet<string>(), _runLost = new HashSet<string>();
         static string _search = "", _lastSearch = null, _newFact = "";
         static int _lastFilter = -1, _page, _lastCount = -1;
         static Fact _sel;
@@ -83,6 +85,10 @@ namespace Road96Toolkit
 
         static void ReadHave(NB.NarrativeContext ctx)
         {
+            _run = RunFacts.Read(ctx);
+            _runGained = new HashSet<string>(_run.Gained);
+            _runLost = new HashSet<string>(_run.Lost);
+            foreach (var t in _run.Lost) Get(t);
             _have.Clear();
             Game.Try("Facts read", () =>
             {
@@ -116,7 +122,7 @@ namespace Road96Toolkit
                 if (on) { if (!ctx.HasTag(tag)) ctx.AddTag(tag); }
                 else while (ctx.HasTag(tag)) ctx.RemoveTag(tag);
             });
-            if (on) _have.Add(tag); else _have.Remove(tag);
+            ReadHave(ctx);
             Get(tag);
             _lastSearch = null;
             ChoiceHints.Reread();
@@ -144,6 +150,7 @@ namespace Road96Toolkit
 
         static string Line(Fact f) =>
             (_have.Contains(f.Tag) ? "[x] " : "[  ] ") + f.Tag +
+            (_runGained.Contains(f.Tag) ? "   + this run" : _runLost.Contains(f.Tag) ? "   - lost this run" : "") +
             (f.Text.Length > 0 ? "   " + Cut(f.Text, 60) : "") +
             (f.Scenario ? "   (scenario done)" : "") +
             (f.NeededBy.Count > 0 ? $"   needed by {f.NeededBy.Count}" : "");
@@ -158,19 +165,30 @@ namespace Road96Toolkit
             if (Time.unscaledTime > _nextRead)
             {
                 _nextRead = Time.unscaledTime + 2f;
-                int before = _have.Count;
+                int before = _have.Count, beforeRun = _runGained.Count + _runLost.Count * 1000;
                 ReadHave(ctx);
-                if (_have.Count != before) _lastSearch = null;
+                if (_have.Count != before || _runGained.Count + _runLost.Count * 1000 != beforeRun) _lastSearch = null;
             }
 
             Gui.Label($"The game remembers what you did as facts. You have {_have.Count}, {_all.Count} are known. Click one to switch it.");
             Gui.Label("Scenarios, answers and places check these, so a change takes effect the next time the game looks.");
 
-            var r = Gui.Row(1f, 1f, 1f, 1f);
-            string[] f = { "All", "I have", "I do not have" };
-            for (int i = 0; i < 3; i++)
-                if (GUI.Button(r[i], _filter == i ? "[ " + f[i] + " ]" : f[i])) _filter = i;
-            if (GUI.Button(r[3], "Rescan")) Scan(ctx);
+            var r = Gui.Row(1f, 1f, 1.2f, 1f, 0.8f);
+            string[] f = { "All", "I have", "I do not have", "This run" };
+            for (int i = 0; i < 4; i++)
+                if (Gui.Pick(r[i], f[i], _filter == i, Gui.TabKind.Choice)) _filter = i;
+            if (GUI.Button(r[4], "Rescan")) Scan(ctx);
+
+            if (_filter == 3)
+            {
+                if (!_run.Started) Gui.Label("No trip is going on right now, start one to see what this teen picks up.");
+                else
+                {
+                    Gui.Label($"Trip {_run.Trip}, teen #{_run.Teen}:  {_run.Gained.Count} facts gained, {_run.Lost.Count} lost, {_run.Played.Count} scenarios played.");
+                    if (!_run.FromStart)
+                        Gui.Label("The toolkit was not watching when this trip started, so only facts since then and finished scenarios show. Next trip shows everything.");
+                }
+            }
 
             _search = Gui.Search(_search);
             if (_search != _lastSearch || _filter != _lastFilter || _all.Count != _lastCount)
@@ -178,8 +196,8 @@ namespace Road96Toolkit
                 _lastSearch = _search; _lastFilter = _filter; _lastCount = _all.Count;
                 _shown = _all.Values.Where(x =>
                         (Gui.Contains(x.Tag, _search) || Gui.Contains(x.Text, _search)) &&
-                        (_filter == 0 || (_filter == 1) == _have.Contains(x.Tag)))
-                    .OrderBy(x => x.Scenario).ThenBy(x => x.Tag, StringComparer.OrdinalIgnoreCase).ToList();
+                        (_filter == 0 || (_filter == 3 ? _runGained.Contains(x.Tag) || _runLost.Contains(x.Tag) : (_filter == 1) == _have.Contains(x.Tag))))
+                    .OrderBy(x => _filter == 3 && _runLost.Contains(x.Tag)).ThenBy(x => x.Scenario).ThenBy(x => x.Tag, StringComparer.OrdinalIgnoreCase).ToList();
             }
 
             int pick = Gui.List(_shown, ref _page, Line, 12, x => x == _sel);
@@ -205,7 +223,8 @@ namespace Road96Toolkit
 
             if (_sel == null) return;
             Gui.Space(4);
-            Gui.Label(_sel.Tag + (_have.Contains(_sel.Tag) ? "   you have it" : "   you do not have it") + (_sel.Scenario ? "   (left when this scenario is finished)" : ""));
+            Gui.Label(_sel.Tag + (_have.Contains(_sel.Tag) ? "   you have it" : "   you do not have it") +
+                (_runGained.Contains(_sel.Tag) ? ", got it this run" : _runLost.Contains(_sel.Tag) ? ", lost it this run" : "") + (_sel.Scenario ? "   (left when this scenario is finished)" : ""));
             if (_sel.Text.Length > 0) Gui.Label(Cut(_sel.Text, 140));
             if (_sel.NeededBy.Count > 0 && Gui.HasRoom()) Gui.Label("Needed by: " + Cut(string.Join(", ", _sel.NeededBy), 140));
             if (_sel.BlockedBy.Count > 0 && Gui.HasRoom()) Gui.Label("Stops: " + Cut(string.Join(", ", _sel.BlockedBy), 140));

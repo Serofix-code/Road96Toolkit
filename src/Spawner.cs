@@ -136,7 +136,7 @@ namespace Road96Toolkit
             var tabs = Gui.Row(3);
             string[] names = { "Characters here", "Other levels", "Any prefab" };
             for (int i = 0; i < 3; i++)
-                if (GUI.Button(tabs[i], _mode == i ? "[ " + names[i] + " ]" : names[i])) { _mode = i; Scan(); }
+                if (Gui.Pick(tabs[i], names[i], _mode == i, Gui.TabKind.Choice)) { _mode = i; Scan(); }
 
             var r = Gui.Row(1f, 1.3f, 1.3f);
             if (GUI.Button(r[0], "Rescan")) Scan();

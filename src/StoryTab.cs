@@ -38,10 +38,7 @@ namespace Road96Toolkit
                 return;
             }
 
-            var row = Gui.Row(6);
-            for (int i = 0; i < Sections.Length; i++)
-                if (GUI.Button(row[i], i == _section ? "[ " + Sections[i] + " ]" : Sections[i])) _section = i;
-            Gui.Space(4);
+            _section = Gui.Tabs(Sections, _section, Gui.TabKind.Section);
 
             switch (_section)
             {

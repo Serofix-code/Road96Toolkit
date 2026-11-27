@@ -188,15 +188,7 @@ namespace Road96Toolkit
             Gui.Begin(inner);
 
             // two rows of tabs
-            var r1 = Gui.Row(6);
-            var r2 = Gui.Row(6);
-            for (int i = 0; i < TabNames.Length; i++)
-            {
-                var rect = i < 6 ? r1[i] : r2[i - 6];
-                string label = i == _tab ? "[ " + TabNames[i] + " ]" : TabNames[i];
-                if (GUI.Button(rect, label)) _tab = i;
-            }
-            Gui.Space(4);
+            _tab = Gui.Tabs(TabNames, _tab, Gui.TabKind.Main, 6);
 
             try
             {

@@ -43,10 +43,7 @@ namespace Road96Toolkit
 
         public static void Draw()
         {
-            var row = Gui.Row(4);
-            for (int i = 0; i < Sections.Length; i++)
-                if (GUI.Button(row[i], i == _section ? "[ " + Sections[i] + " ]" : Sections[i])) _section = i;
-            Gui.Space(4);
+            _section = Gui.Tabs(Sections, _section, Gui.TabKind.Section);
 
             if (_section == 1) { AgeSection.Draw(); return; }
             if (_section == 2) { IconSwapper.Draw(); return; }

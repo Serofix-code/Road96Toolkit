@@ -99,7 +99,7 @@ namespace Road96Toolkit
             var r = Gui.Row(4);
             string[] names = { "Normal", "Always win", "Always fail", "Custom %" };
             for (int i = 0; i < 4; i++)
-                if (GUI.Button(r[i], Plugin.OddsMode.Value == i ? "[ " + names[i] + " ]" : names[i])) { Plugin.OddsMode.Value = i; ChoiceHints.Reread(); }
+                if (Gui.Pick(r[i], names[i], Plugin.OddsMode.Value == i, Gui.TabKind.Choice)) { Plugin.OddsMode.Value = i; ChoiceHints.Reread(); }
             if (Plugin.OddsMode.Value == 3)
             {
                 var c = Gui.Row(2f, 0.7f, 0.7f, 0.7f, 0.7f);

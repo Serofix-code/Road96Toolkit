@@ -95,9 +95,10 @@ namespace Road96Toolkit
             if (_all.Count == 0) Scan();
 
             var row = Gui.Row(1f, 1f, 0.6f);
-            if (GUI.Button(row[0], _section == 0 ? "[ Collectible tapes ]" : "Collectible tapes")) _section = 0;
-            if (GUI.Button(row[1], _section == 1 ? "[ Every item ]" : "Every item")) _section = 1;
+            if (Gui.Pick(row[0], "Collectible tapes", _section == 0, Gui.TabKind.Section)) _section = 0;
+            if (Gui.Pick(row[1], "Every item", _section == 1, Gui.TabKind.Section)) _section = 1;
             if (GUI.Button(row[2], "Rescan")) Scan();
+            Gui.Divider(Gui.TabKind.Section);
 
             if (_search != _lastSearch || _section != _lastSection)
             {

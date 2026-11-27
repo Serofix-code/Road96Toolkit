@@ -66,7 +66,7 @@ namespace Road96Toolkit
             var src = Gui.Row(3);
             string[] names = { "Teen icons", "Game pictures", "My images" };
             for (int i = 0; i < 3; i++)
-                if (GUI.Button(src[i], _source == i ? "[ " + names[i] + " ]" : names[i])) { _source = i; _page = 0; }
+                if (Gui.Pick(src[i], names[i], _source == i, Gui.TabKind.Choice)) { _source = i; _page = 0; }
 
             var list = _source == 0 ? _teens : _source == 1 ? _sprites : _mine;
             if (list.Count == 0 || GUI.Button(Gui.Row(1)[0], "Rescan"))
