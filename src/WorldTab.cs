@@ -133,6 +133,8 @@ namespace Road96Toolkit
                 if (GUI.Button(er[2], "+")) Plugin.ItemEspRange.Value = Mathf.Min(1000f, Plugin.ItemEspRange.Value + 10f);
                 if (GUI.Button(er[3], (Plugin.ItemEspAll.Value ? "[ON] " : "[off] ") + "Everything")) Plugin.ItemEspAll.Value = !Plugin.ItemEspAll.Value;
             }
+            if (Gui.Button("Dice rolls: " + ChoiceEditor.OddsModeText() + "   (click to change, more in Story > Answers)"))
+                Plugin.OddsMode.Value = (Plugin.OddsMode.Value + 1) % 4;
             if (Gui.Toggle("Auto pick the best answer in dialogues", Plugin.AutoPickBest.Value))
                 Plugin.AutoPickBest.Value = !Plugin.AutoPickBest.Value;
             if (Gui.Toggle("Minigame help: Connect 4 move, metal detector, ticket odds", Plugin.MinigameHelpers.Value))

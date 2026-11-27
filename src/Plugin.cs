@@ -12,7 +12,7 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.7.1";
+        public const string Version = "1.8.0";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;
@@ -43,6 +43,8 @@ namespace Road96Toolkit
         internal static ConfigEntry<bool> ItemEsp;
         internal static ConfigEntry<bool> ItemEspAll;
         internal static ConfigEntry<float> ItemEspRange;
+        internal static ConfigEntry<int> OddsMode;
+        internal static ConfigEntry<float> OddsPercent;
 
         static bool _upgradeKeys;
 
@@ -106,9 +108,13 @@ namespace Road96Toolkit
             ItemEsp = Config.Bind("Cheats", "ItemEsp", false, "Show cassette tapes you do not have and everything you can pick up, through walls");
             ItemEspAll = Config.Bind("Cheats", "ItemEspEverything", false, "Item ESP also shows every other thing you can interact with (doors, people, objects)");
             ItemEspRange = Config.Bind("Cheats", "ItemEspRange", 80f, "How far away (in meters) the item ESP shows things");
+            OddsMode = Config.Bind("Cheats", "DiceRolls", 0, "Every chance roll in the game: 0 normal, 1 always win, 2 always fail, 3 use DiceRollWinPercent");
+            OddsPercent = Config.Bind("Cheats", "DiceRollWinPercent", 50f, "Chance to win every roll when DiceRolls is 3");
             ArcadeGodMode = Config.Bind("Cheats", "ArcadeGodMode", false, "Endless lives and ammo in the arcade shooter and the shooting scenes");
 
-            TeenPicker.Patch(new HarmonyLib.Harmony(Guid));
+            var harmony = new HarmonyLib.Harmony(Guid);
+            TeenPicker.Patch(harmony);
+            ChoiceEditor.Patch(harmony);
             AddComponent<ToolkitBehaviour>();
             Log.LogInfo($"{Name} {Version} loaded. Press {MenuKey} in game.");
         }

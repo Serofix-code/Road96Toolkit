@@ -30,6 +30,22 @@ namespace Road96Toolkit
         static float _readAt;
         static bool _visibleChecked, _picked;
         public static bool HasChoices => _hints.Count > 0;
+        public static DialogueChoiceNode Current => _cur;
+        public static bool IsVisible(int index) { var h = _hints.FirstOrDefault(x => x.Index == index); return h == null || h.Visible; }
+        public static string TextOf(int index) => _hints.FirstOrDefault(x => x.Index == index)?.Text ?? ("answer " + (index + 1));
+
+        // read the answers again after they were edited, keeping which ones are on screen
+        public static void Reread()
+        {
+            if (_cur == null) return;
+            var hidden = new HashSet<int>(_hints.Where(h => !h.Visible).Select(h => h.Index));
+            Read(_cur);
+            foreach (var h in _hints) if (hidden.Contains(h.Index)) h.Visible = false;
+            _best = -1;
+            float bestScore = 0.05f;
+            for (int i = 0; i < _hints.Count; i++)
+                if (_hints[i].Visible && _hints[i].Score > bestScore) { bestScore = _hints[i].Score; _best = i; }
+        }
 
         static IntPtr _node;
         static readonly List<Hint> _hints = new List<Hint>();
@@ -39,7 +55,7 @@ namespace Road96Toolkit
 
         public static void Update()
         {
-            if (!Plugin.ChoiceHints.Value && !Plugin.AutoPickBest.Value) { _hints.Clear(); _node = IntPtr.Zero; return; }
+            if (!Plugin.ChoiceHints.Value && !Plugin.AutoPickBest.Value && !ToolkitBehaviour.IsOpen) { _hints.Clear(); _node = IntPtr.Zero; _cur = null; return; }
 
             DialogueChoiceNode node = null;
             try
@@ -118,7 +134,7 @@ namespace Road96Toolkit
                     {
                         var w = c.worldImpact;
                         if (w != null && Math.Abs(w._impact) > 0.001f)
-                            sb.Append($"{w._gaugeType} vote {(w._impact > 0 ? "+" : "")}{w._impact:0.##}   ");
+                            sb.Append($"{ChoiceEditor.GaugeName(w._gaugeType)} {(w._impact > 0 ? "+" : "")}{w._impact:0.##}   ");
                     }
                     catch { }
                     try { if (c.moneyRequired > 0) { sb.Append($"Costs ${c.moneyRequired}   "); score -= 0.2f; } } catch { }
@@ -133,8 +149,10 @@ namespace Road96Toolkit
                         if (c.probability != null && ctx != null && settings != null)
                         {
                             float p = c.probability.GetProbability(ctx, settings);
-                            sb.Append($"{p * 100f:0}% chance   ");
-                            score += (p - 0.5f) * (c.probability._isPositiveForThePlayer ? 2f : -2f);
+                            bool good = c.probability._isPositiveForThePlayer;
+                            float win = good ? p : 1f - p;
+                            sb.Append($"{win * 100f:0}% to win   ");
+                            score += (win - 0.5f) * 2f;
                         }
                     }
                     catch { }

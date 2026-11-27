@@ -36,6 +36,7 @@ namespace Road96Toolkit
             ("snapshot [name]", "make a save snapshot"),
             ("freecam / noclip / photo / devview", "toggle those modes"),
             ("hints / autopick / esp", "toggle choice hints, auto pick or the item ESP"),
+            ("odds win|fail|normal|<percent>", "force every dice roll"),
             ("clear", "clear this box"),
         };
 
@@ -198,6 +199,17 @@ namespace Road96Toolkit
                     case "photo": Toggle(); PhotoMode.Toggle(); return;
                     case "devview": case "dev": Toggle(); DevView.Toggle(); return;
                     case "hints": Plugin.ChoiceHints.Value = !Plugin.ChoiceHints.Value; Print("Choice hints " + (Plugin.ChoiceHints.Value ? "on" : "off")); break;
+                    case "odds": case "dice":
+                    {
+                        var a = arg.ToLowerInvariant();
+                        if (a == "win") Plugin.OddsMode.Value = 1;
+                        else if (a == "fail" || a == "lose") Plugin.OddsMode.Value = 2;
+                        else if (a == "normal" || a == "off" || a == "") Plugin.OddsMode.Value = 0;
+                        else { Plugin.OddsPercent.Value = Mathf.Clamp(F(a.TrimEnd('%')), 0f, 100f); Plugin.OddsMode.Value = 3; }
+                        ChoiceHints.Reread();
+                        Print("Dice rolls: " + ChoiceEditor.OddsModeText());
+                        break;
+                    }
                     case "esp": case "items": ItemEsp.Toggle(); Print("Item ESP " + (Plugin.ItemEsp.Value ? "on" : "off")); break;
                     case "autopick": Plugin.AutoPickBest.Value = !Plugin.AutoPickBest.Value; Print("Auto pick " + (Plugin.AutoPickBest.Value ? "on" : "off")); break;
                     default: Print("Unknown command, type help"); break;

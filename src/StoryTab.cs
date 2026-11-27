@@ -27,7 +27,7 @@ namespace Road96Toolkit
         static Entry _selected;
         static int _section;
 
-        static readonly string[] Sections = { "Scenarios", "Tracker", "Endings", "Election" };
+        static readonly string[] Sections = { "Scenarios", "Tracker", "Answers", "Endings", "Election" };
 
         public static void Draw()
         {
@@ -38,7 +38,7 @@ namespace Road96Toolkit
                 return;
             }
 
-            var row = Gui.Row(4);
+            var row = Gui.Row(5);
             for (int i = 0; i < Sections.Length; i++)
                 if (GUI.Button(row[i], i == _section ? "[ " + Sections[i] + " ]" : Sections[i])) _section = i;
             Gui.Space(4);
@@ -47,8 +47,9 @@ namespace Road96Toolkit
             {
                 case 0: DrawScenarios(ctrl); break;
                 case 1: StoryTracker.Draw(ctrl); break;
-                case 2: DrawEndings(); break;
-                case 3: DrawElection(); break;
+                case 2: ChoiceEditor.DrawAnswers(); break;
+                case 3: DrawEndings(); break;
+                case 4: DrawElection(); break;
             }
         }
 
@@ -226,7 +227,8 @@ namespace Road96Toolkit
             string act = "?";
             Game.Try("Read act", () => act = ctx.StoryAct.ToString());
             Gui.Label("Story act: " + act);
-            Gui.Label("The election ending leans on these three world gauges.");
+            Gui.Label("The election ending leans on these three world gauges:");
+            Gui.Label("Florres (Moderate), Tyrak (Individualist) and the revolution (Revolutionary).");
             Gui.Label("Push one up to steer which ending you get at the end of the game.");
             Gui.Space();
 
@@ -242,7 +244,7 @@ namespace Road96Toolkit
                 var g = gauges[i];
                 if (g == null) continue;
                 var r = Gui.Row(3f, 1f, 1f, 1.6f);
-                GUI.Label(r[0], $"{g._type}: {g._value:0.00}");
+                GUI.Label(r[0], $"{ChoiceEditor.GaugeLong(g._type)}: {g._value:0.00}");
                 if (GUI.Button(r[1], "-")) g._value -= Step(g._value);
                 if (GUI.Button(r[2], "+")) g._value += Step(g._value);
                 if (GUI.Button(r[3], "Make it win"))
@@ -251,7 +253,7 @@ namespace Road96Toolkit
                     for (int j = 0; j < gauges.Count; j++)
                         if (j != i && gauges[j] != null) max = Math.Max(max, gauges[j]._value);
                     g._value = Math.Max(g._value, max + Math.Max(1f, Math.Abs(max) * 0.5f));
-                    ToolkitBehaviour.Toast(g._type + " now leads");
+                    ToolkitBehaviour.Toast(ChoiceEditor.GaugeName(g._type) + " now leads");
                 }
             }
 

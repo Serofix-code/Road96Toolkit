@@ -10,7 +10,9 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Queue a scenario as the next one, or jump straight into it
 * Jump to the border, the final border and the final road (with or without Zoe)
 * End the current trip with any ending: passed the border, arrested at the border, died, arrested, died at the border
-* Election gauges (Revolutionary, Individualist, Moderate): raise or lower them, or make one win to steer the final ending
+* Election gauges, shown with the candidate they help: Florres (Moderate), Tyrak (Individualist) and the revolution (Revolutionary). Raise or lower them, or make one win to steer the final ending
+* Answers: while a conversation shows its answers, change what each one does before you pick it: its karma, which candidate it helps and by how much, and its odds (win, 50% or fail)
+* Dice rolls: make every chance in the game always win, always fail, or win at a percent you pick (Story > Answers, the World tab or `odds win` in the command bar)
 * Story tracker: every scenario with a played or not played mark, progress per character, and a filter for the ones you can play right now. Pick one to see what it needs and what blocks it, queue it, or give yourself what it needs in one click
 
 **Levels**
@@ -53,7 +55,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 
 **Helpers** (each one can be turned on or off in the World tab)
 * Ball ESP for the cup game (the guy who shuffles the cans): a red box sits on the can that hides the ball and follows it through the whole shuffle
-* Choice hints: while you pick an answer in a conversation, a panel lists what every answer really does (karma, which vote gauge it pushes, money, items it needs, the odds of it working, how the scene ends) and marks the best one. It also shows the code of any keypad in the level. Off by default
+* Choice hints: while you pick an answer in a conversation, a panel lists what every answer really does (karma, which candidate it helps, money, items it needs, the odds of it working, how the scene ends) and marks the best one. It also shows the code of any keypad in the level. Off by default
 * Level name: the name of the level, its story id and the character in it show up for a few seconds when a level loads. On by default
 * Item ESP (F11): marks every cassette tape you do not have yet (yellow) and everything the game lets you pick up (blue) through walls, with its name and distance. Can also show every other thing you can interact with. Off by default
 * Auto pick: answers dialogues for you with the best answer (after a short wait you can change in the config). Only answers the game is really showing count. Off by default
@@ -65,7 +67,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Teleport straight to any character in the level, closest first
 
 **Command bar** (F9)
-* Type instead of clicking: `money 100`, `setmoney 500`, `karma 1`, `energy full`, `tp diner`, `wp diner`, `mission SONYA_6`, `queue SONYA_6`, `level <name>`, `spawn <name>`, `tapes`, `teen 3`, `speed 2`, `snapshot before border`, `freecam`, `noclip`, `photo`, `devview`, `hints`, `autopick`, `esp`
+* Type instead of clicking: `money 100`, `setmoney 500`, `karma 1`, `energy full`, `tp diner`, `wp diner`, `mission SONYA_6`, `queue SONYA_6`, `level <name>`, `spawn <name>`, `tapes`, `teen 3`, `speed 2`, `snapshot before border`, `freecam`, `noclip`, `photo`, `devview`, `hints`, `autopick`, `esp`, `odds win`
 * Up and Down go through what you typed before, `help` lists everything
 
 **Third person** (F10, experimental)
