@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using Il2CppInterop.Runtime;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace Road96Toolkit
@@ -11,7 +13,8 @@ namespace Road96Toolkit
         const int Layer = 31;
         static readonly Vector3 Spot = new Vector3(0f, -4000f, 0f);
 
-        static GameObject _model, _camGo, _lightGo;
+        static GameObject _model, _camGo, _lightGo, _fillGo, _volumeGo;
+        static Exposure _exposure;
         static Camera _cam;
         static RenderTexture _rt;
         static GameObject _source;
@@ -72,20 +75,36 @@ namespace Road96Toolkit
                 {
                     var hd = _camGo.AddComponent<HDAdditionalCameraData>();
                     hd.clearColorMode = HDAdditionalCameraData.ClearColorMode.Color;
-                    hd.backgroundColorHDR = new Color(0.12f, 0.13f, 0.16f, 1f);
+                    hd.backgroundColorHDR = new Color(0.03f, 0.035f, 0.045f, 1f);
+                    // only our own volume, so the level's fog and its night time auto exposure
+                    // (which blew the picture out to white) stay out of the preview
+                    hd.volumeLayerMask = 1 << Layer;
                 });
 
-                // a soft key light right next to the model so it is lit even in night scenes
-                _lightGo = new GameObject("Road96Toolkit_PreviewLight");
-                UnityEngine.Object.DontDestroyOnLoad(_lightGo);
-                var light = _lightGo.AddComponent<Light>();
-                light.type = LightType.Point;
-                light.range = 8f;
-                Game.Try("Preview HDRP light", () =>
+                Game.Try("Preview volume", () =>
                 {
-                    var hl = _lightGo.AddComponent<HDAdditionalLightData>();
-                    hl.intensity = 3000f;
+                    _volumeGo = new GameObject("Road96Toolkit_PreviewVolume");
+                    UnityEngine.Object.DontDestroyOnLoad(_volumeGo);
+                    _volumeGo.layer = Layer;
+                    _volumeGo.transform.position = Spot;
+                    var box = _volumeGo.AddComponent<BoxCollider>();
+                    box.isTrigger = true;
+                    box.size = new Vector3(60f, 60f, 60f);
+                    var vol = _volumeGo.AddComponent<Volume>();
+                    vol.isGlobal = false;
+                    vol.priority = 1000f;
+                    var profile = ScriptableObject.CreateInstance<VolumeProfile>();
+                    _exposure = profile.Add(Il2CppType.Of<Exposure>(), true).Cast<Exposure>();
+                    _exposure.mode.Override(ExposureMode.Fixed);
+                    _exposure.fixedExposure.Override(Plugin.PreviewExposure.Value);
+                    var fog = profile.Add(Il2CppType.Of<Fog>(), true).Cast<Fog>();
+                    fog.enabled.Override(false);
+                    vol.sharedProfile = profile;
                 });
+
+                // key light in front and a weaker fill from the side, both next to the model
+                _lightGo = MakeLight("Road96Toolkit_PreviewLight", 900f);
+                _fillGo = MakeLight("Road96Toolkit_PreviewFill", 300f);
 
                 _yaw = 180f;
                 _zoom = 1f;
@@ -97,9 +116,34 @@ namespace Road96Toolkit
             if (_model != null) UnityEngine.Object.Destroy(_model);
             if (_camGo != null) UnityEngine.Object.Destroy(_camGo);
             if (_lightGo != null) UnityEngine.Object.Destroy(_lightGo);
-            _model = _camGo = _lightGo = null;
+            if (_fillGo != null) UnityEngine.Object.Destroy(_fillGo);
+            if (_volumeGo != null) UnityEngine.Object.Destroy(_volumeGo);
+            _model = _camGo = _lightGo = _fillGo = _volumeGo = null;
+            _exposure = null;
             _cam = null;
             _source = null;
+        }
+
+        static GameObject MakeLight(string name, float lumen)
+        {
+            var go = new GameObject(name);
+            UnityEngine.Object.DontDestroyOnLoad(go);
+            var light = go.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.range = 8f;
+            light.cullingMask = 1 << Layer;
+            Game.Try("Preview HDRP light", () =>
+            {
+                var hl = go.AddComponent<HDAdditionalLightData>();
+                hl.intensity = lumen;
+            });
+            return go;
+        }
+
+        static void SetExposure(float ev)
+        {
+            Plugin.PreviewExposure.Value = Mathf.Clamp(ev, 0f, 16f);
+            try { _exposure?.fixedExposure.Override(Plugin.PreviewExposure.Value); } catch { }
         }
 
         static void SetLayer(Transform t, int layer)
@@ -123,13 +167,14 @@ namespace Road96Toolkit
             _camGo.transform.position = center - dir * dist;
             _camGo.transform.LookAt(center);
             _lightGo.transform.position = center - dir * 1.5f + Vector3.up * 1.2f;
+            if (_fillGo != null) _fillGo.transform.position = center + Quaternion.Euler(0, 100f, 0) * (-dir) * 1.8f;
         }
 
         // drawn by the main behaviour, to the right of the toolkit window
         public static void Draw(Rect anchor)
         {
             if (_model == null || _rt == null) return;
-            var r = new Rect(anchor.xMax + 8, anchor.y, 300, 470);
+            var r = new Rect(anchor.xMax + 8, anchor.y, 300, 498);
             GUI.Box(r, "");
             GUI.Box(r, _name ?? "Preview");
             var img = new Rect(r.x + 8, r.y + 26, r.width - 16, (r.width - 16) * 4f / 3f);
@@ -141,7 +186,11 @@ namespace Road96Toolkit
             if (GUI.Button(b1, "Zoom in")) _zoom = Mathf.Max(0.3f, _zoom * 0.8f);
             if (GUI.Button(b2, "Zoom out")) _zoom = Mathf.Min(3f, _zoom * 1.25f);
             if (GUI.Button(b3, "Close")) { Hide(); return; }
-            if (GUI.Button(new Rect(r.x + 8, y + 26, r.width - 16, 22), "Spawn this character"))
+            var d1 = new Rect(r.x + 8, y + 26, (r.width - 20) / 2f, 22);
+            var d2 = new Rect(d1.xMax + 4, d1.y, d1.width, 22);
+            if (GUI.Button(d1, "Darker")) SetExposure(Plugin.PreviewExposure.Value + 0.5f);
+            if (GUI.Button(d2, "Brighter")) SetExposure(Plugin.PreviewExposure.Value - 0.5f);
+            if (GUI.Button(new Rect(r.x + 8, y + 52, r.width - 16, 22), "Spawn this character"))
                 Spawner.SpawnObject(_source, _name);
         }
     }

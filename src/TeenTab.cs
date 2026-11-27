@@ -10,7 +10,7 @@ namespace Road96Toolkit
     internal static class TeenTab
     {
         static int _section;
-        static readonly string[] Sections = { "Teen and gender", "Age" };
+        static readonly string[] Sections = { "Teen and gender", "Age", "HUD icon" };
 
         static int _genderFilter = -1; // -1 all, 0 male, 1 female
         static int _page;
@@ -28,12 +28,13 @@ namespace Road96Toolkit
 
         public static void Draw()
         {
-            var row = Gui.Row(2);
+            var row = Gui.Row(3);
             for (int i = 0; i < Sections.Length; i++)
                 if (GUI.Button(row[i], i == _section ? "[ " + Sections[i] + " ]" : Sections[i])) _section = i;
             Gui.Space(4);
 
             if (_section == 1) { AgeSection.Draw(); return; }
+            if (_section == 2) { IconSwapper.Draw(); return; }
 
             var ctx = Game.Context;
             var settings = Game.Settings;
@@ -198,7 +199,7 @@ namespace Road96Toolkit
 
         // Copy the portrait out of the atlas into a texture we own, so the game unloading
         // its atlas (or Unity collecting it) can't blank our pictures.
-        static Texture2D Bake(Texture2D src, Rect uv)
+        internal static Texture2D Bake(Texture2D src, Rect uv)
         {
             RenderTexture rt = null;
             var prev = RenderTexture.active;

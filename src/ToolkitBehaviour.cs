@@ -62,6 +62,7 @@ namespace Road96Toolkit
             SceneEditor.Update();
             CharacterCatalog.Update();
             NpcPreview.Update();
+            IconSwapper.Update();
             CursorFix();
         }
 

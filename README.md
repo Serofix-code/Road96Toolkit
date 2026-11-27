@@ -23,6 +23,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Random teen button
 * Age chooser (one click ages from 12 to 21)
 * Age setter for an exact age, or a youngest and oldest age for the game to roll between
+* HUD icon swapper: replace the teen head in the top left corner with another teen's icon, any picture the game has loaded, or your own PNG or JPG (put them in `BepInEx/config/Road96Toolkit/icons`). Hover a name to see the picture
 
 **Abilities**
 * Toggle every ability on or off, give all, remove all
@@ -55,7 +56,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 **Character spawner**
 * Lists every character the current area has loaded (and any other prefab in memory)
 * Other levels: pick any level and the toolkit copies its characters for you, so you can spawn people that are not in the area you are in. The level loads out of sight for a second and is unloaded again
-* 3D preview: a small window next to the menu shows the character turning around before you spawn it, with zoom
+* 3D preview: rest the mouse on a character in the list and a small window next to the menu shows it turning around, with zoom and darker or brighter buttons (hover preview can be turned off)
 * Spawns a copy in front of the camera, standing still or with its normal behaviour
 * Edit or delete anything you spawned
 

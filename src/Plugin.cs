@@ -23,6 +23,8 @@ namespace Road96Toolkit
         internal static ConfigEntry<bool> LogStates;
         internal static ConfigEntry<bool> BlockGameFlyMode;
         internal static ConfigEntry<bool> CupEsp;
+        internal static ConfigEntry<float> PreviewExposure;
+        internal static ConfigEntry<bool> PreviewOnHover;
 
         static bool _upgradeKeys;
 
@@ -63,6 +65,8 @@ namespace Road96Toolkit
 
             BlockGameFlyMode = Config.Bind("General", "BlockGameFlyMode", true, "The game has a hidden developer fly mode that can switch on by itself. Keep this on to stop it, the toolkit freecam still works");
 
+            PreviewExposure = Config.Bind("Preview", "Exposure", 7f, "Exposure of the 3D character preview. Higher is darker");
+            PreviewOnHover = Config.Bind("Preview", "ShowOnHover", true, "Show the 3D preview when the mouse rests on a character in the spawner list");
             CupEsp = Config.Bind("Cheats", "CupGameBallEsp", true, "Show which cup hides the ball in the shell game");
 
             AddComponent<ToolkitBehaviour>();

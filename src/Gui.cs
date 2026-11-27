@@ -104,9 +104,14 @@ namespace Road96Toolkit
         }
 
         // Paged list helper. Returns the index clicked, or -1.
+        // index of the list entry under the mouse after the last List call, or -1
+        public static int Hovered = -1;
+
         public static int List<T>(IList<T> items, ref int page, Func<T, string> label, int rows, Func<T, bool> highlight = null)
         {
             int clicked = -1;
+            Hovered = -1;
+            var ev = Event.current;
             int pages = Math.Max(1, (items.Count + rows - 1) / rows);
             if (page >= pages) page = pages - 1;
             if (page < 0) page = 0;
@@ -116,7 +121,9 @@ namespace Road96Toolkit
             {
                 string text = label(items[i]);
                 if (highlight != null && highlight(items[i])) text = "> " + text;
-                if (GUI.Button(new Rect(X, Y, W, LineH), text)) clicked = i;
+                var br = new Rect(X, Y, W, LineH);
+                if (ev != null && br.Contains(ev.mousePosition)) Hovered = i;
+                if (GUI.Button(br, text)) clicked = i;
                 Y += LineH + Gap;
             }
 

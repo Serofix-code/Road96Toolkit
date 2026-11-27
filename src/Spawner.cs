@@ -96,9 +96,10 @@ namespace Road96Toolkit
             for (int i = 0; i < 3; i++)
                 if (GUI.Button(tabs[i], _mode == i ? "[ " + names[i] + " ]" : names[i])) { _mode = i; Scan(); }
 
-            var r = Gui.Row(1f, 1f);
+            var r = Gui.Row(1f, 1.3f, 1.3f);
             if (GUI.Button(r[0], "Rescan")) Scan();
             if (GUI.Button(r[1], (_stayStill ? "[ON] " : "[off] ") + "Clones stand still")) _stayStill = !_stayStill;
+            if (GUI.Button(r[2], (Plugin.PreviewOnHover.Value ? "[ON] " : "[off] ") + "Preview on hover")) Plugin.PreviewOnHover.Value = !Plugin.PreviewOnHover.Value;
 
             r = Gui.Row(2f, 1f, 1f);
             GUI.Label(r[0], $"Spawn distance: {_distance:0.0} m");
@@ -120,6 +121,7 @@ namespace Road96Toolkit
 
             int pick = Gui.List(_filtered, ref _page, s => $"{s.Name}   ({s.Kind})", _mode == 1 ? 6 : 10, s => s == _sel);
             if (pick >= 0) _sel = _filtered[pick];
+            HoverPreview(_mode == 2 ? -1 : Gui.Hovered);
 
             var a = Gui.Row(2);
             if (GUI.Button(a[0], _sel != null ? "Spawn " + _sel.Name : "Spawn (pick one)") && _sel != null) Spawn(_sel);
@@ -139,6 +141,21 @@ namespace Road96Toolkit
 
             int sp = Gui.List(_spawned, ref _spawnPage, g => g.name + "   (click to edit)", 3);
             if (sp >= 0) SceneEditor.Select(_spawned[sp].transform);
+        }
+
+        static Source _hover;
+        static float _hoverSince;
+
+        // rest the mouse on a character for a moment and the 3D preview shows it
+        static void HoverPreview(int hovered)
+        {
+            var ev = Event.current;
+            if (ev == null || ev.type != EventType.Repaint || !Plugin.PreviewOnHover.Value) return;
+            var h = hovered >= 0 && hovered < _filtered.Count ? _filtered[hovered] : null;
+            if (h != _hover) { _hover = h; _hoverSince = Time.unscaledTime; return; }
+            if (h == null || h.Go == null || NpcPreview.Source == h.Go) return;
+            if (Time.unscaledTime - _hoverSince < 0.3f) return;
+            NpcPreview.Show(h.Go, h.Name);
         }
 
         static void DrawOtherLevels()
