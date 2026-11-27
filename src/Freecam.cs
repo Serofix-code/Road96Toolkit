@@ -89,6 +89,7 @@ namespace Road96Toolkit
         {
             if (!Active) return;
             if (_cam == null) { Disable(); return; }
+            if (!ToolkitBehaviour.IsOpen && InputHelper.Down(KeyCode.Backspace)) { GameStates.BackToTeenView(); return; }
 
             float dt = Time.unscaledDeltaTime;
 
@@ -132,12 +133,15 @@ namespace Road96Toolkit
         public static void Draw()
         {
             Gui.Label("Fly the camera anywhere. Your teen stays where they are.");
-            if (Gui.Toggle("Freecam (" + Plugin.FreecamKey.Value + ")", Active)) Toggle();
+            Gui.Label("It only turns on from this button or " + Plugin.FreecamKey + " (change it in the config).");
+            var top = Gui.Row(1f, 1f);
+            if (GUI.Button(top[0], (Active ? "[ON] " : "[off] ") + "Freecam (" + Plugin.FreecamKey + ")")) Toggle();
+            if (GUI.Button(top[1], "Back to teen view")) GameStates.BackToTeenView();
             if (Gui.Toggle("Lock the player while flying", _lockPlayer)) _lockPlayer = !_lockPlayer;
             Gui.Space();
 
             Gui.Header("Controls");
-            Gui.Label("W A S D move, Q down, E or Space up");
+            Gui.Label("W A S D move, Q down, E or Space up, Backspace back to teen view");
             Gui.Label("Shift is 4x faster, Ctrl is 4x slower, mouse wheel changes speed");
             Gui.Label("With this window open hold the right mouse button to look around");
             Gui.Space();

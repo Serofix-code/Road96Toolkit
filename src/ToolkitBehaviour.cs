@@ -10,7 +10,7 @@ namespace Road96Toolkit
 
         internal static ToolkitBehaviour Instance;
 
-        static readonly string[] TabNames = { "Story", "Teen", "Abilities", "World", "Freecam", "Spawner", "Scene editor" };
+        static readonly string[] TabNames = { "Story", "Teen", "Abilities", "World", "Freecam", "Spawner", "Scene editor", "Dev menu" };
         int _tab;
 
         bool _open;
@@ -18,7 +18,7 @@ namespace Road96Toolkit
         bool _playerFrozenByUs;
         bool _prevCursorVisible;
         CursorLockMode _prevCursorLock;
-        Rect _window = new Rect(40, 40, 560, 720);
+        Rect _window = new Rect(40, 40, 580, 760);
         bool _dragging;
         Vector2 _dragOffset;
 
@@ -40,11 +40,20 @@ namespace Road96Toolkit
 
         void Update()
         {
-            if (InputHelper.Down(Plugin.MenuKey.Value)) SetOpen(!_open);
-            if (InputHelper.Down(Plugin.FreecamKey.Value)) Freecam.Toggle();
-            if (InputHelper.Down(Plugin.PickKey.Value)) SceneEditor.PickUnderCrosshair();
-            if (InputHelper.Down(Plugin.HideUiKey.Value)) WorldTab.ToggleHud();
+            if (Plugin.MenuKey.Pressed()) SetOpen(!_open);
+            if (Plugin.FreecamKey.Pressed()) Freecam.Toggle();
+            if (Plugin.PickKey.Pressed()) SceneEditor.PickUnderCrosshair();
+            if (Plugin.HideUiKey.Pressed()) WorldTab.ToggleHud();
+            if (Plugin.DevMenuKey.Pressed())
+            {
+                if (_open && _tab == 7) SetOpen(false);
+                else { _tab = 7; if (!_open) SetOpen(true); }
+            }
 
+            if (!_open && !Freecam.Active && InputHelper.Down(KeyCode.Backspace) && GameStates.Has("GodModeState"))
+                GameStates.BackToTeenView();
+
+            GameStates.Update();
             Freecam.Update();
             SceneEditor.Update();
         }
@@ -97,7 +106,7 @@ namespace Road96Toolkit
             }
 
             if (Freecam.Active && !_open)
-                GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), "Freecam  |  WASD move  Q/E down/up  Shift fast  Ctrl slow  Scroll speed  " + Plugin.FreecamKey.Value + " exit");
+                GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), "Freecam  |  WASD move  Q/E down/up  Shift fast  Ctrl slow  Scroll speed  " + Plugin.FreecamKey + " or Backspace for teen view");
 
             if (!_open) return;
 
@@ -106,14 +115,14 @@ namespace Road96Toolkit
             // drawn twice so the background is less see through
             GUI.Box(_window, "");
             GUI.Box(_window, "");
-            GUI.Box(new Rect(_window.x, _window.y, _window.width, Gui.LineH), $"{Plugin.Name} {Plugin.Version}   ({Plugin.MenuKey.Value} to close, drag here to move)");
+            GUI.Box(new Rect(_window.x, _window.y, _window.width, Gui.LineH), $"{Plugin.Name} {Plugin.Version}   ({Plugin.MenuKey} to close, drag here to move)");
 
             var inner = new Rect(_window.x + 8, _window.y + Gui.LineH + 6, _window.width - 16, _window.height - Gui.LineH - 14);
             Gui.Begin(inner);
 
             // two rows of tabs
             var r1 = Gui.Row(4);
-            var r2 = Gui.Row(3);
+            var r2 = Gui.Row(4);
             for (int i = 0; i < TabNames.Length; i++)
             {
                 var rect = i < 4 ? r1[i] : r2[i - 4];
@@ -133,6 +142,7 @@ namespace Road96Toolkit
                     case 4: Freecam.Draw(); break;
                     case 5: Spawner.Draw(); break;
                     case 6: SceneEditor.Draw(); break;
+                    case 7: DevMenuTab.Draw(); break;
                 }
             }
             catch (Exception e)

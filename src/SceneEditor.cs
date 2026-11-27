@@ -109,7 +109,7 @@ namespace Road96Toolkit
 
         static void DrawBrowser()
         {
-            Gui.Label($"Press {Plugin.PickKey.Value} to grab what is in the middle of the screen, or browse below.");
+            Gui.Label($"Press {Plugin.PickKey} to grab what is in the middle of the screen, or browse below.");
 
             var r = Gui.Row(1f, 1f, 1f);
             if (GUI.Button(r[0], "Scene roots")) { _listParent = null; BuildList(); _page = 0; }

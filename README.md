@@ -1,6 +1,6 @@
 # Road96 Toolkit
 
-A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, a scene editor, a character spawner and full control over the story: pick the scenario, the ending, which teen you play and their gender, and your abilities.
+A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, a scene editor, a character spawner, the developers' debug menu and full control over the story: pick the scenario, the ending, which teen you play, their gender and age, your money and your abilities.
 
 Single player only. It does not touch online features.
 
@@ -17,21 +17,28 @@ Single player only. It does not touch online features.
 * See all the teens with their portraits and play as any of them
 * Switch gender (picks a matching teen so the portrait fits)
 * Random teen button
+* Age chooser (one click ages from 12 to 21)
+* Age setter for an exact age, or a youngest and oldest age for the game to roll between
 
 **Abilities**
 * Toggle every ability on or off, give all, remove all
 * Remove the per trip ability limit
+* Special abilities: the OMEN ability (normally only unlocked through HP's OMEN Gaming Hub) and any other ability the game has loaded that is not in the normal list
 
 **World**
-* Money, energy, karma, days left before the vote, distance to the border
+* Money giver: quick buttons from $1 to $1000, a custom amount to give or set, or take it all
+* Energy, karma, days left before the vote, distance to the border
 * Day or night and desert or forest for the next scenario
 * Pause, normal speed, 2x speed
 * Hide the game HUD for clean screenshots
 
 **Freecam**
+* Only turns on from its shortcut (Ctrl+F2) or the button in the menu
 * Fly anywhere with WASD, Q and E, Shift and Ctrl for speed, mouse wheel to tune it
 * Field of view and roll for screenshots
+* Back to teen view with one button or Backspace
 * Teleport your teen to where the camera is
+* The game hides a developer fly mode that can switch on by itself. The toolkit turns it off when that happens (you can allow it in the config)
 
 **Character spawner**
 * Lists every character the current area has loaded (and any other prefab in memory)
@@ -44,16 +51,22 @@ Single player only. It does not touch online features.
 * Carry an object with the camera, drop it to the ground, make it face you
 * Save your changes per scene and load them again later
 
+**Developer menu**
+* The developers left their debug menu in the game, but its screen is broken in the retail build. This tab lists everything it has registered in the current scene and runs the entries for you
+* Writes the game's state and loaded scenes to the log, useful for bug reports
+
 ## Keys
 
 | Key | What it does |
 |-----|--------------|
 | F1 | Open or close the menu |
-| F2 | Freecam on or off |
+| Ctrl+F2 | Freecam on or off |
+| Backspace | Leave the freecam and go back to the teen's view |
 | F3 | Select the object in the middle of the screen |
 | F4 | Hide or show the HUD |
+| F6 | Open the developer menu tab |
 
-All keys can be changed in `BepInEx/config/serofix.road96toolkit.cfg` after the first launch.
+All shortcuts can be changed in `BepInEx/config/serofix.road96toolkit.cfg` after the first launch. Modifiers work too, for example `Ctrl+Shift+F`.
 
 ## Install
 
@@ -67,6 +80,7 @@ If you also have MelonLoader installed, remove or rename its `version.dll` first
 
 ## Notes
 
+* The teen's age only appears on the teen cards in the main menu and on loading screens, so that is where the age chooser shows up.
 * Teen and gender changes show on the trip map, the posters and the loading screens. You play in first person so you will not see yourself in game.
 * Time of day and area changes are picked up by the next scenario, not the one you are in.
 * Spawned characters are copies. They look and animate like the original but are not part of the story, so they will not talk to you.

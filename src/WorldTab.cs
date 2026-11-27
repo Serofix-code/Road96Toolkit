@@ -9,6 +9,18 @@ namespace Road96Toolkit
     internal static class WorldTab
     {
         static bool _hudHidden;
+        static readonly int[] Amounts = { 1, 5, 20, 100, 500, 1000 };
+        static int _custom = 50;
+
+        static int Step(int v, bool up)
+        {
+            int b = up ? v : v - 1;
+            if (b < 10) return 1;
+            if (b < 100) return 10;
+            if (b < 1000) return 50;
+            if (b < 10000) return 500;
+            return 5000;
+        }
         static readonly List<Canvas> _hidden = new List<Canvas>();
 
         public static void Draw()
@@ -36,12 +48,27 @@ namespace Road96Toolkit
                 env = ctx._currentEnvironment.ToString();
             });
 
+            Gui.Header($"Money giver   (you have ${money})");
+            var r = Gui.Row(1f, 1f, 1f, 1f, 1f, 1f);
+            for (int i = 0; i < Amounts.Length; i++)
+            {
+                int amt = Amounts[i];
+                if (GUI.Button(r[i], "+" + amt)) Game.Try("Money", () => ctx.AddMoney(amt));
+            }
+            r = Gui.Row(2f, 1f, 1f, 1.4f, 1.4f);
+            GUI.Label(r[0], $"Custom amount: ${_custom}");
+            if (GUI.Button(r[1], "-")) _custom = Math.Max(0, _custom - Step(_custom, false));
+            if (GUI.Button(r[2], "+")) _custom = Math.Min(999999, _custom + Step(_custom, true));
+            if (GUI.Button(r[3], "Give it")) Game.Try("Money", () => ctx.AddMoney(_custom));
+            if (GUI.Button(r[4], "Set to it")) Game.Try("Money", () =>
+            {
+                int diff = _custom - ctx._currentMoney;
+                if (diff > 0) ctx.AddMoney(diff); else if (diff < 0) ctx.RemoveMoney(-diff);
+            });
+            if (Gui.Button("Take all my money")) Game.Try("Money", () => ctx.RemoveMoney(ctx._currentMoney));
+
+            Gui.Space();
             Gui.Header("Trip");
-            var r = Gui.Row(2f, 1f, 1f, 1f);
-            GUI.Label(r[0], $"Money: ${money}");
-            if (GUI.Button(r[1], "+10")) Game.Try("Money", () => ctx.AddMoney(10));
-            if (GUI.Button(r[2], "+100")) Game.Try("Money", () => ctx.AddMoney(100));
-            if (GUI.Button(r[3], "Zero")) Game.Try("Money", () => ctx.RemoveMoney(ctx._currentMoney));
 
             r = Gui.Row(2f, 1f, 1f, 1f);
             GUI.Label(r[0], $"Energy: {energy:0.#} / {maxEnergy:0.#}");
@@ -89,7 +116,7 @@ namespace Road96Toolkit
             if (GUI.Button(r[2], "Normal")) Time.timeScale = 1f;
             if (GUI.Button(r[3], "2x")) Time.timeScale = 2f;
 
-            if (Gui.Toggle("Hide game HUD (" + Plugin.HideUiKey.Value + ")", _hudHidden)) ToggleHud();
+            if (Gui.Toggle("Hide game HUD (" + Plugin.HideUiKey + ")", _hudHidden)) ToggleHud();
 
             if (Gui.Button("Open the developer debug menu (if it exists in this build)"))
             {

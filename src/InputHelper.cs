@@ -117,3 +117,51 @@ namespace Road96Toolkit
         }
     }
 }
+
+namespace Road96Toolkit
+{
+    // A key with optional Ctrl / Shift / Alt, written in the config like "Ctrl+F2".
+    internal sealed class Hotkey
+    {
+        public UnityEngine.KeyCode Key = UnityEngine.KeyCode.None;
+        public bool Ctrl, Shift, Alt;
+
+        public static Hotkey Parse(string text)
+        {
+            var h = new Hotkey();
+            if (string.IsNullOrWhiteSpace(text)) return h;
+            foreach (var raw in text.Split('+'))
+            {
+                var part = raw.Trim();
+                switch (part.ToLowerInvariant())
+                {
+                    case "ctrl": case "control": h.Ctrl = true; break;
+                    case "shift": h.Shift = true; break;
+                    case "alt": h.Alt = true; break;
+                    default:
+                        if (System.Enum.TryParse(part, true, out UnityEngine.KeyCode k)) h.Key = k;
+                        break;
+                }
+            }
+            return h;
+        }
+
+        static bool CtrlHeld => InputHelper.Held(UnityEngine.KeyCode.LeftControl) || InputHelper.Held(UnityEngine.KeyCode.RightControl);
+        static bool ShiftHeld => InputHelper.Held(UnityEngine.KeyCode.LeftShift) || InputHelper.Held(UnityEngine.KeyCode.RightShift);
+        static bool AltHeld => InputHelper.Held(UnityEngine.KeyCode.LeftAlt) || InputHelper.Held(UnityEngine.KeyCode.RightAlt);
+
+        public bool Pressed()
+        {
+            if (Key == UnityEngine.KeyCode.None) return false;
+            if (!InputHelper.Down(Key)) return false;
+            // modifiers must match exactly, so F2 alone does not fire Ctrl+F2 and the other way round
+            return Ctrl == CtrlHeld && Shift == ShiftHeld && Alt == AltHeld;
+        }
+
+        public override string ToString()
+        {
+            if (Key == UnityEngine.KeyCode.None) return "(no key)";
+            return (Ctrl ? "Ctrl+" : "") + (Shift ? "Shift+" : "") + (Alt ? "Alt+" : "") + Key;
+        }
+    }
+}
