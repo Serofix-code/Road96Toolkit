@@ -90,7 +90,38 @@ namespace Road96Toolkit
             return _sources;
         }
 
-        internal static void Track(GameObject go) { if (go != null && !_spawned.Contains(go)) _spawned.Add(go); }
+        static readonly Dictionary<IntPtr, string> _origin = new Dictionary<IntPtr, string>();
+
+        internal static void Track(GameObject go, string from = null)
+        {
+            if (go == null) return;
+            if (!_spawned.Contains(go)) _spawned.Add(go);
+            if (from != null) _origin[go.Pointer] = from;
+        }
+
+        // "here" or the name of the level the template was copied from
+        internal static string OriginOf(GameObject go) => go != null && _origin.TryGetValue(go.Pointer, out var f) ? f : "here";
+
+        // used when loading a shared layout
+        internal static Transform SpawnAt(GameObject template, string name, Vector3 pos, Quaternion rot, string from)
+        {
+            if (template == null) return null;
+            Transform res = null;
+            Game.Try("Spawn at", () =>
+            {
+                var clone = UnityEngine.Object.Instantiate(template.Cast<UnityEngine.Object>(), pos, rot).Cast<GameObject>();
+                clone.name = name + " (toolkit)";
+                if (clone.transform.parent != null) clone.transform.SetParent(null, true);
+                clone.transform.SetPositionAndRotation(pos, rot);
+                clone.hideFlags = HideFlags.None;
+                clone.layer = template.layer;
+                clone.SetActive(true);
+                if (_stayStill) MakeStill(clone);
+                Track(clone, from ?? CharacterCatalog.FromOf(template) ?? "here");
+                res = clone.transform;
+            });
+            return res;
+        }
         internal static bool StayStill => _stayStill;
 
         static bool IsOurs(GameObject go)
@@ -234,7 +265,7 @@ namespace Road96Toolkit
                 clone.layer = template.layer;
                 clone.SetActive(true);
                 if (_stayStill) MakeStill(clone);
-                _spawned.Add(clone);
+                Track(clone, CharacterCatalog.FromOf(template) ?? "here");
                 ToolkitBehaviour.Toast("Spawned " + name);
             });
         }

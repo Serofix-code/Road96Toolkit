@@ -24,6 +24,8 @@ namespace Road96Toolkit
         public static float Fov { get => _fov < 0 ? 60f : _fov; set => _fov = value; }
         public static float Roll { get => _roll; set => _roll = value; }
         public static Quaternion Rotation => Quaternion.Euler(_pitch, _yaw, _roll);
+        public static void MoveTo(Vector3 pos, float yaw) { _pos = pos; _yaw = yaw; _pitch = 0; }
+        static int _section;
 
         public static void Toggle()
         {
@@ -33,6 +35,7 @@ namespace Road96Toolkit
         public static void Enable()
         {
             if (Noclip.Active) Noclip.Disable();
+            if (ThirdPerson.Active) ThirdPerson.Disable();
             _cam = Game.MainCamera;
             if (_cam == null)
             {
@@ -136,6 +139,11 @@ namespace Road96Toolkit
 
         public static void Draw()
         {
+            var sec = Gui.Row(2);
+            if (GUI.Button(sec[0], _section == 0 ? "[ Freecam and noclip ]" : "Freecam and noclip")) _section = 0;
+            if (GUI.Button(sec[1], _section == 1 ? "[ Third person ]" : "Third person")) _section = 1;
+            Gui.Space(4);
+            if (_section == 1) { ThirdPerson.Draw(); return; }
             Gui.Label("Fly the camera anywhere. Your teen stays where they are.");
             Gui.Label("It only turns on from this button or " + Plugin.FreecamKey + " (change it in the config).");
             var top = Gui.Row(1f, 1f);

@@ -23,7 +23,7 @@ namespace Road96Toolkit
         static float _carryDist = 3f;
 
         // edits remembered for saving, keyed by scene then path
-        class Edit
+        public class Edit
         {
             public string Scene { get; set; }
             public string Path { get; set; }
@@ -36,6 +36,53 @@ namespace Road96Toolkit
         static readonly Dictionary<string, Edit> _edits = new Dictionary<string, Edit>();
 
         static string SaveDir => Path.Combine(BepInEx.Paths.ConfigPath, "Road96Toolkit", "layouts");
+        static int _section;
+
+        // everything changed in the loaded scenes: saved layout files plus this session
+        internal static List<Edit> AllEdits()
+        {
+            var merged = new Dictionary<string, Edit>();
+            try
+            {
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    var sc = SceneManager.GetSceneAt(i);
+                    if (!sc.isLoaded) continue;
+                    var file = Path.Combine(SaveDir, Safe(sc.name) + ".json");
+                    if (!File.Exists(file)) continue;
+                    var old = JsonSerializer.Deserialize<List<Edit>>(File.ReadAllText(file));
+                    if (old != null) foreach (var o in old) merged[o.Scene + "|" + o.Path] = o;
+                }
+            }
+            catch { }
+            foreach (var kv in _edits) merged[kv.Key] = kv.Value;
+            return merged.Values.ToList();
+        }
+
+        internal static (int applied, int missing) ApplyEdits(List<Edit> edits)
+        {
+            int applied = 0, missing = 0;
+            if (edits == null) return (0, 0);
+            foreach (var e in edits)
+            {
+                Transform t = null;
+                for (int i = 0; i < SceneManager.sceneCount && t == null; i++)
+                {
+                    var sc = SceneManager.GetSceneAt(i);
+                    if (!sc.isLoaded || (e.Scene != null && sc.name != e.Scene)) continue;
+                    t = FindByPath(sc, e.Path);
+                }
+                if (t == null) { missing++; continue; }
+                if (e.Deleted) { UnityEngine.Object.Destroy(t.gameObject); applied++; continue; }
+                if (e.Pos != null) t.position = new Vector3(e.Pos[0], e.Pos[1], e.Pos[2]);
+                if (e.Rot != null) t.eulerAngles = new Vector3(e.Rot[0], e.Rot[1], e.Rot[2]);
+                if (e.Scale != null) t.localScale = new Vector3(e.Scale[0], e.Scale[1], e.Scale[2]);
+                t.gameObject.SetActive(e.Active);
+                if (e.Scene != null) _edits[e.Scene + "|" + e.Path] = e;
+                applied++;
+            }
+            return (applied, missing);
+        }
 
         public static void Select(Transform t)
         {
@@ -103,6 +150,11 @@ namespace Road96Toolkit
 
         public static void Draw()
         {
+            var sec = Gui.Row(2);
+            if (GUI.Button(sec[0], _section == 0 ? "[ Objects ]" : "Objects")) _section = 0;
+            if (GUI.Button(sec[1], _section == 1 ? "[ Share layouts ]" : "Share layouts")) _section = 1;
+            Gui.Space(4);
+            if (_section == 1) { LayoutShare.Draw(); return; }
             if (_sel == null) DrawBrowser();
             else DrawInspector();
         }
@@ -374,17 +426,9 @@ namespace Road96Toolkit
                     if (!File.Exists(file)) continue;
                     var edits = JsonSerializer.Deserialize<List<Edit>>(File.ReadAllText(file));
                     if (edits == null) continue;
-                    foreach (var e in edits)
-                    {
-                        var t = FindByPath(sc, e.Path);
-                        if (t == null) { missing++; continue; }
-                        if (e.Deleted) { UnityEngine.Object.Destroy(t.gameObject); applied++; continue; }
-                        if (e.Pos != null) t.position = new Vector3(e.Pos[0], e.Pos[1], e.Pos[2]);
-                        if (e.Rot != null) t.eulerAngles = new Vector3(e.Rot[0], e.Rot[1], e.Rot[2]);
-                        if (e.Scale != null) t.localScale = new Vector3(e.Scale[0], e.Scale[1], e.Scale[2]);
-                        t.gameObject.SetActive(e.Active);
-                        applied++;
-                    }
+                    foreach (var e in edits) e.Scene ??= sc.name;
+                    var (a, m) = ApplyEdits(edits);
+                    applied += a; missing += m;
                 }
                 ToolkitBehaviour.Toast($"Applied {applied} changes" + (missing > 0 ? $", {missing} objects not found" : ""));
             });

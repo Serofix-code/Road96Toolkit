@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using BlueEyes.Interactions;
 using BlueEyes.Dialogues;
 using BlueEyes.Digicode;
 using Il2CppInterop.Runtime;
@@ -20,7 +22,14 @@ namespace Road96Toolkit
             public string Effects;
             public float Score;
             public bool Done;
+            public int Index;
+            public bool Visible = true;
         }
+
+        static DialogueChoiceNode _cur;
+        static float _readAt;
+        static bool _visibleChecked, _picked;
+        public static bool HasChoices => _hints.Count > 0;
 
         static IntPtr _node;
         static readonly List<Hint> _hints = new List<Hint>();
@@ -30,7 +39,7 @@ namespace Road96Toolkit
 
         public static void Update()
         {
-            if (!Plugin.ChoiceHints.Value) { _hints.Clear(); _node = IntPtr.Zero; return; }
+            if (!Plugin.ChoiceHints.Value && !Plugin.AutoPickBest.Value) { _hints.Clear(); _node = IntPtr.Zero; return; }
 
             DialogueChoiceNode node = null;
             try
@@ -40,11 +49,27 @@ namespace Road96Toolkit
             }
             catch { }
 
-            if (node == null) { if (_node != IntPtr.Zero) { _hints.Clear(); _node = IntPtr.Zero; } }
+            if (node == null) { if (_node != IntPtr.Zero) { _hints.Clear(); _node = IntPtr.Zero; _cur = null; } }
             else if (node.Pointer != _node)
             {
                 _node = node.Pointer;
+                _cur = node;
+                _readAt = Time.unscaledTime;
+                _visibleChecked = _picked = false;
                 Read(node);
+            }
+
+            // the answer buttons show up a moment after the node starts
+            if (_cur != null && !_visibleChecked && Time.unscaledTime - _readAt > 0.4f)
+            {
+                _visibleChecked = true;
+                MarkVisible();
+            }
+            if (_cur != null && _visibleChecked && !_picked && Plugin.AutoPickBest.Value && _best >= 0 &&
+                Time.unscaledTime - _readAt > Mathf.Max(0.5f, Plugin.AutoPickDelay.Value))
+            {
+                _picked = true;
+                PickBest();
             }
 
             if (Time.unscaledTime > _nextCodeScan)
@@ -68,7 +93,7 @@ namespace Road96Toolkit
                 {
                     var c = list[i];
                     if (c == null) continue;
-                    var h = new Hint();
+                    var h = new Hint { Index = i };
                     var sb = new StringBuilder();
                     float score = 0;
 
@@ -138,6 +163,56 @@ namespace Road96Toolkit
             if (_hints.Count > 0) Plugin.Log.LogInfo($"Choice hints: {_hints.Count} choices, best {_best}");
         }
 
+        static List<DialogChoiceInteraction> ShownButtons()
+        {
+            var res = new List<DialogChoiceInteraction>();
+            try
+            {
+                foreach (var d in UnityEngine.Object.FindObjectsOfType<DialogInteraction>())
+                {
+                    var list = d?._currentChoices;
+                    if (list == null) continue;
+                    for (int i = 0; i < list.Count; i++) if (list[i] != null) res.Add(list[i]);
+                }
+            }
+            catch { }
+            return res;
+        }
+
+        static string Clean(string s) => (s ?? "").Trim().ToLowerInvariant();
+
+        // only answers the game is really offering count (some are hidden by conditions)
+        static void MarkVisible()
+        {
+            var shown = ShownButtons();
+            if (shown.Count == 0) return;
+            var texts = new HashSet<string>();
+            foreach (var b in shown) { try { texts.Add(Clean(b.Content)); } catch { } }
+            if (!_hints.Any(h => texts.Contains(Clean(h.Text)))) return; // texts did not match, keep them all
+            foreach (var h in _hints) h.Visible = texts.Contains(Clean(h.Text));
+            _best = -1;
+            float bestScore = 0.05f;
+            for (int i = 0; i < _hints.Count; i++)
+                if (_hints[i].Visible && _hints[i].Score > bestScore) { bestScore = _hints[i].Score; _best = i; }
+        }
+
+        static void PickBest()
+        {
+            var h = _hints[_best];
+            Game.Try("Auto pick", () =>
+            {
+                // press the real answer button when we can find it, so the game cleans up its UI
+                foreach (var b in ShownButtons())
+                {
+                    string text = null;
+                    try { text = b.Content; } catch { }
+                    if (Clean(text) == Clean(h.Text)) { b.OnInteractionBegin(); ToolkitBehaviour.Toast("Picked: " + h.Text); return; }
+                }
+                _cur.OnOptionSelected(h.Index);
+                ToolkitBehaviour.Toast("Picked: " + h.Text);
+            });
+        }
+
         static void ScanCodes()
         {
             _codes.Clear();
@@ -161,20 +236,22 @@ namespace Road96Toolkit
         {
             if (!Plugin.ChoiceHints.Value) return;
             if (_hints.Count == 0 && _codes.Count == 0) return;
+            int shownCount = _hints.Count(x => x.Visible);
 
             float w = 470;
-            float h = 26 + _hints.Count * 42 + (_codes.Count > 0 ? 22 + _codes.Count * 20 : 0);
+            float h = 26 + shownCount * 42 + (_codes.Count > 0 ? 22 + _codes.Count * 20 : 0);
             var r = new Rect(Screen.width - w - 16, Screen.height * 0.3f, w, h);
             GUI.Box(r, "");
             GUI.Box(r, "");
             float y = r.y + 4;
             if (_hints.Count > 0)
             {
-                GUI.Label(new Rect(r.x + 8, y, w - 16, 20), "Choice hints (" + Plugin.Name + ")");
+                GUI.Label(new Rect(r.x + 8, y, w - 16, 20), "Choice hints" + (Plugin.AutoPickBest.Value ? "   (auto pick is on)" : ""));
                 y += 22;
                 for (int i = 0; i < _hints.Count; i++)
                 {
                     var hi = _hints[i];
+                    if (!hi.Visible) continue;
                     string mark = i == _best ? "BEST  " : hi.Done ? "(used)  " : "";
                     GUI.Label(new Rect(r.x + 8, y, w - 16, 20), $"{i + 1}. {mark}{Short(hi.Text, 60)}");
                     GUI.Label(new Rect(r.x + 26, y + 18, w - 34, 20), hi.Effects);

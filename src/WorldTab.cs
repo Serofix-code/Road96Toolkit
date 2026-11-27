@@ -123,6 +123,13 @@ namespace Road96Toolkit
                 Plugin.CupEsp.Value = !Plugin.CupEsp.Value;
             if (Gui.Toggle("Choice hints: what each answer does, the best one, keypad codes", Plugin.ChoiceHints.Value))
                 Plugin.ChoiceHints.Value = !Plugin.ChoiceHints.Value;
+            if (Gui.Toggle("Auto pick the best answer in dialogues", Plugin.AutoPickBest.Value))
+                Plugin.AutoPickBest.Value = !Plugin.AutoPickBest.Value;
+            if (Gui.Toggle("Minigame help: Connect 4 move, metal detector, ticket odds", Plugin.MinigameHelpers.Value))
+                Plugin.MinigameHelpers.Value = !Plugin.MinigameHelpers.Value;
+            if (Gui.Toggle("Endless lives and ammo (arcade and shooting scenes)", Plugin.ArcadeGodMode.Value))
+                Plugin.ArcadeGodMode.Value = !Plugin.ArcadeGodMode.Value;
+            if (MinigameHelpers.AirHockeyActive && Gui.Button("Score an air hockey goal")) MinigameHelpers.ScoreAirHockeyGoal();
             if (Gui.Toggle("Show the level name when a level loads", Plugin.LevelNamePopup.Value))
                 Plugin.LevelNamePopup.Value = !Plugin.LevelNamePopup.Value;
 

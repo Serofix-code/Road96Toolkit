@@ -266,6 +266,14 @@ namespace Road96Toolkit
             Apply(ctx, pool[UnityEngine.Random.Range(0, pool.Count)]);
         }
 
+        internal static void PlayAs(NB.NarrativeContext ctx, int id)
+        {
+            var settings = Game.Settings;
+            if (settings != null) LoadFaces(settings);
+            if (!_faces.ContainsKey(id)) throw new System.Exception("there is no teen #" + id + (_faces.Count > 0 ? $" (0 to {_faces.Count - 1})" : ""));
+            Apply(ctx, id);
+        }
+
         static void Apply(NB.NarrativeContext ctx, int id)
         {
             if (!_faces.TryGetValue(id, out var fi)) return;

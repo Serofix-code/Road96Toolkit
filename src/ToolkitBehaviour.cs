@@ -10,9 +10,9 @@ namespace Road96Toolkit
 
         internal static ToolkitBehaviour Instance;
 
-        static readonly string[] TabNames = { "Story", "Levels", "Teen", "Abilities", "Items", "Saves", "World", "Freecam", "Spawner", "Scene editor", "Dev menu" };
-        const int DevTab = 10;
-        internal const int SceneEditorTab = 9;
+        static readonly string[] TabNames = { "Story", "Levels", "Teen", "Abilities", "Items", "Saves", "World", "Travel", "Freecam", "Spawner", "Scene editor", "Dev menu" };
+        const int DevTab = 11;
+        internal const int SceneEditorTab = 10;
 
         internal void CloseMenu() { if (_open) SetOpen(false); }
         internal void OpenTab(int tab) { _tab = tab; if (!_open) SetOpen(true); }
@@ -45,7 +45,11 @@ namespace Road96Toolkit
 
         void Update()
         {
+            if (Plugin.CommandKey.Pressed()) CommandBar.Toggle();
+            // typing in the command bar must not set off the other shortcuts
+            if (CommandBar.Open) { GameStates.Update(); return; }
             if (Plugin.MenuKey.Pressed()) SetOpen(!_open);
+            if (Plugin.ThirdPersonKey.Pressed()) ThirdPerson.Toggle();
             if (Plugin.FreecamKey.Pressed()) Freecam.Toggle();
             if (Plugin.NoclipKey.Pressed()) Noclip.Toggle();
             if (Plugin.PickKey.Pressed()) SceneEditor.PickUnderCrosshair();
@@ -74,13 +78,18 @@ namespace Road96Toolkit
             DevView.Update();
             SavesTab.Update();
             PhotoMode.Update();
+            LayoutShare.Update();
+            MinigameHelpers.Update();
+            ThirdPerson.Update();
             CursorFix();
         }
 
         void LateUpdate()
         {
             Freecam.LateUpdate();
-            if (_open || DevView.Active || (PhotoMode.Active && PhotoMode.PanelVisible))
+            ThirdPerson.LateUpdate();
+            Poses.LateUpdate();
+            if (_open || CommandBar.Open || DevView.Active || (PhotoMode.Active && PhotoMode.PanelVisible))
             {
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
@@ -151,6 +160,8 @@ namespace Road96Toolkit
 
             LevelPopup.Draw();
             ChoiceHints.Draw();
+            MinigameHelpers.Draw();
+            CommandBar.Draw(s);
             DevView.Draw(s);
             PhotoMode.Draw(s);
 
@@ -174,7 +185,7 @@ namespace Road96Toolkit
 
             // two rows of tabs
             var r1 = Gui.Row(6);
-            var r2 = Gui.Row(5);
+            var r2 = Gui.Row(6);
             for (int i = 0; i < TabNames.Length; i++)
             {
                 var rect = i < 6 ? r1[i] : r2[i - 6];
@@ -194,10 +205,11 @@ namespace Road96Toolkit
                     case 4: ItemsTab.Draw(); break;
                     case 5: SavesTab.Draw(); break;
                     case 6: WorldTab.Draw(); break;
-                    case 7: Freecam.Draw(); break;
-                    case 8: Spawner.Draw(); break;
-                    case 9: SceneEditor.Draw(); break;
-                    case 10: DevMenuTab.Draw(); break;
+                    case 7: TravelTab.Draw(); break;
+                    case 8: Freecam.Draw(); break;
+                    case 9: Spawner.Draw(); break;
+                    case 10: SceneEditor.Draw(); break;
+                    case 11: DevMenuTab.Draw(); break;
                 }
             }
             catch (Exception e)

@@ -18,6 +18,14 @@ namespace Road96Toolkit
         }
 
         public static readonly List<Entry> Entries = new List<Entry>();
+
+        // which level a copied character came from, null for things that were already here
+        public static string FromOf(GameObject template)
+        {
+            if (template == null) return null;
+            foreach (var e in Entries) if (e.Template != null && e.Template.Pointer == template.Pointer) return e.From;
+            return null;
+        }
         static GameObject _holder;
 
         static readonly Queue<string> _todo = new Queue<string>();

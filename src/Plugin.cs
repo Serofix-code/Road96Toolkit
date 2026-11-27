@@ -12,7 +12,7 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.6.0";
+        public const string Version = "1.7.0";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;
@@ -35,6 +35,11 @@ namespace Road96Toolkit
         internal static ConfigEntry<bool> PhotoLookMovesCamera;
         internal static ConfigEntry<int> AutoBackupCount;
         internal static ConfigEntry<bool> PreviewOnHover;
+        internal static ConfigEntry<bool> AutoPickBest;
+        internal static ConfigEntry<float> AutoPickDelay;
+        internal static ConfigEntry<bool> MinigameHelpers;
+        internal static ConfigEntry<bool> ArcadeGodMode;
+        internal static Hotkey CommandKey, ThirdPersonKey;
 
         static bool _upgradeKeys;
 
@@ -70,6 +75,8 @@ namespace Road96Toolkit
             DevMenuKey = BindKey(Config, "DeveloperMenu", "F6", "Open the game's own developer debug menu");
             PhotoKey = BindKey(Config, "PhotoMode", "F8", "Photo mode: pause, free camera, effects and screenshots");
             DevViewKey = BindKey(Config, "DevView", "F7", "Dev view: freecam with a spawn palette, click to place and edit characters");
+            CommandKey = BindKey(Config, "CommandBar", "F9", "Command bar: type commands like money 100 or tp diner");
+            ThirdPersonKey = BindKey(Config, "ThirdPerson", "F10", "Third person camera (experimental)");
 
             FreezeWithMenu = Config.Bind("General", "FreezePlayerWhileMenuOpen", true, "Stop the player from walking and looking around while the window is open");
             MenuScale = Config.Bind("General", "MenuScale", 1f, "Scale of the window, 1 is normal, try 1.5 on 4K screens");
@@ -89,6 +96,10 @@ namespace Road96Toolkit
             AutoBackupCount = Config.Bind("Saves", "AutoBackupCount", 15, "How many automatic backups to keep");
             SavesTab.ApplyPendingRestore();
             CupEsp = Config.Bind("Cheats", "CupGameBallEsp", true, "Show which cup hides the ball in the shell game");
+            AutoPickBest = Config.Bind("Cheats", "AutoPickBestAnswer", false, "Pick the best dialogue answer for you (the one choice hints marks as best)");
+            AutoPickDelay = Config.Bind("Cheats", "AutoPickDelay", 1.5f, "Seconds to wait before auto pick answers, so you can still read them");
+            MinigameHelpers = Config.Bind("Cheats", "MinigameHelpers", true, "Connect 4 best move, metal detector markers, scratch ticket odds, air hockey goal button");
+            ArcadeGodMode = Config.Bind("Cheats", "ArcadeGodMode", false, "Endless lives and ammo in the arcade shooter and the shooting scenes");
 
             AddComponent<ToolkitBehaviour>();
             Log.LogInfo($"{Name} {Version} loaded. Press {MenuKey} in game.");

@@ -174,6 +174,13 @@ namespace Road96Toolkit
             });
         }
 
+        public static void SnapshotNow(string name)
+        {
+            ForceGameSave();
+            _pendingSnapshotName = name ?? "";
+            _pendingSnapshotAt = Time.unscaledTime + 1.5f;
+        }
+
         public static void Update()
         {
             if (_pendingSnapshotName != null && Time.unscaledTime >= _pendingSnapshotAt)

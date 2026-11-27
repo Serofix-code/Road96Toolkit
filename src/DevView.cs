@@ -24,6 +24,7 @@ namespace Road96Toolkit
         // placing
         static GameObject _ghost;
         static string _ghostName;
+        static string _ghostFrom;
         static readonly List<Collider> _ghostColliders = new List<Collider>();
         static float _ghostYaw;
 
@@ -184,6 +185,7 @@ namespace Road96Toolkit
                 if (_ghost.transform.parent != null) _ghost.transform.SetParent(null, true);
                 _ghost.hideFlags = HideFlags.None;
                 _ghost.name = s.Name + " (toolkit)";
+                _ghostFrom = CharacterCatalog.FromOf(s.Go) ?? "here";
                 Spawner.MakeStill(_ghost);
                 _ghostColliders.Clear();
                 foreach (var c in _ghost.GetComponentsInChildren<Collider>(true))
@@ -207,7 +209,7 @@ namespace Road96Toolkit
                 foreach (var c in _ghostColliders) if (c != null) c.enabled = true;
                 _ghostColliders.Clear();
                 if (!Spawner.StayStill) Game.Try("Wake clone", () => { foreach (var r in placed.GetComponentsInChildren<RoutineController>(true)) r.enabled = true; });
-                Spawner.Track(placed);
+                Spawner.Track(placed, _ghostFrom);
                 _sel = placed.transform;
                 _ghost = null;
                 ToolkitBehaviour.Toast("Placed " + _ghostName + ". Shift+click to keep placing");
@@ -246,7 +248,7 @@ namespace Road96Toolkit
                 var clone = UnityEngine.Object.Instantiate(go.Cast<UnityEngine.Object>(), _sel.position + _sel.right, _sel.rotation).Cast<GameObject>();
                 clone.name = go.name.EndsWith("(toolkit)") ? go.name : go.name + " (toolkit)";
                 if (_sel.parent != null) clone.transform.SetParent(_sel.parent, true);
-                Spawner.Track(clone);
+                Spawner.Track(clone, Spawner.OriginOf(go));
                 _sel = clone.transform;
                 _grab = true;
             });
@@ -267,7 +269,7 @@ namespace Road96Toolkit
 
             if (_sel != null)
             {
-                var right = new Rect(sw - 340, 40, 330, Mathf.Min(sh - 90, 640));
+                var right = new Rect(sw - 340, 40, 330, Mathf.Min(sh - 90, 720));
                 DrawInspector(right);
                 _right = Px(right, scale);
             }
@@ -411,6 +413,7 @@ namespace Road96Toolkit
                     if (GUI.Button(r[3], "1x")) { anim.enabled = true; anim.speed = 1f; }
                     if (GUI.Button(r[4], "2x")) { anim.enabled = true; anim.speed = 2f; }
                 }
+                if (anim != null) Poses.Draw(go, anim);
                 var talk = go.GetComponentInChildren<AudioSource>();
                 if (talk != null && Gui.Toggle("Sounds", talk.enabled))
                     foreach (var a in go.GetComponentsInChildren<AudioSource>(true)) a.enabled = !talk.enabled;
