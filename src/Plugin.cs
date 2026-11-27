@@ -12,7 +12,7 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.7.0";
+        public const string Version = "1.7.1";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;
@@ -39,7 +39,10 @@ namespace Road96Toolkit
         internal static ConfigEntry<float> AutoPickDelay;
         internal static ConfigEntry<bool> MinigameHelpers;
         internal static ConfigEntry<bool> ArcadeGodMode;
-        internal static Hotkey CommandKey, ThirdPersonKey;
+        internal static Hotkey CommandKey, ThirdPersonKey, ItemEspKey;
+        internal static ConfigEntry<bool> ItemEsp;
+        internal static ConfigEntry<bool> ItemEspAll;
+        internal static ConfigEntry<float> ItemEspRange;
 
         static bool _upgradeKeys;
 
@@ -77,6 +80,7 @@ namespace Road96Toolkit
             DevViewKey = BindKey(Config, "DevView", "F7", "Dev view: freecam with a spawn palette, click to place and edit characters");
             CommandKey = BindKey(Config, "CommandBar", "F9", "Command bar: type commands like money 100 or tp diner");
             ThirdPersonKey = BindKey(Config, "ThirdPerson", "F10", "Third person camera (experimental)");
+            ItemEspKey = BindKey(Config, "ItemEsp", "F11", "Show everything you can pick up through walls");
 
             FreezeWithMenu = Config.Bind("General", "FreezePlayerWhileMenuOpen", true, "Stop the player from walking and looking around while the window is open");
             MenuScale = Config.Bind("General", "MenuScale", 1f, "Scale of the window, 1 is normal, try 1.5 on 4K screens");
@@ -99,6 +103,9 @@ namespace Road96Toolkit
             AutoPickBest = Config.Bind("Cheats", "AutoPickBestAnswer", false, "Pick the best dialogue answer for you (the one choice hints marks as best)");
             AutoPickDelay = Config.Bind("Cheats", "AutoPickDelay", 1.5f, "Seconds to wait before auto pick answers, so you can still read them");
             MinigameHelpers = Config.Bind("Cheats", "MinigameHelpers", true, "Connect 4 best move, metal detector markers, scratch ticket odds, air hockey goal button");
+            ItemEsp = Config.Bind("Cheats", "ItemEsp", false, "Show cassette tapes you do not have and everything you can pick up, through walls");
+            ItemEspAll = Config.Bind("Cheats", "ItemEspEverything", false, "Item ESP also shows every other thing you can interact with (doors, people, objects)");
+            ItemEspRange = Config.Bind("Cheats", "ItemEspRange", 80f, "How far away (in meters) the item ESP shows things");
             ArcadeGodMode = Config.Bind("Cheats", "ArcadeGodMode", false, "Endless lives and ammo in the arcade shooter and the shooting scenes");
 
             AddComponent<ToolkitBehaviour>();

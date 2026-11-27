@@ -123,6 +123,16 @@ namespace Road96Toolkit
                 Plugin.CupEsp.Value = !Plugin.CupEsp.Value;
             if (Gui.Toggle("Choice hints: what each answer does, the best one, keypad codes", Plugin.ChoiceHints.Value))
                 Plugin.ChoiceHints.Value = !Plugin.ChoiceHints.Value;
+            if (Gui.Toggle("Item ESP: tapes and things to pick up, through walls (" + Plugin.ItemEspKey + ")", Plugin.ItemEsp.Value))
+                ItemEsp.Toggle();
+            if (Plugin.ItemEsp.Value)
+            {
+                var er = Gui.Row(2f, 1f, 1f, 1.6f);
+                GUI.Label(er[0], $"   Range {Plugin.ItemEspRange.Value:0} m");
+                if (GUI.Button(er[1], "-")) Plugin.ItemEspRange.Value = Mathf.Max(10f, Plugin.ItemEspRange.Value - 10f);
+                if (GUI.Button(er[2], "+")) Plugin.ItemEspRange.Value = Mathf.Min(1000f, Plugin.ItemEspRange.Value + 10f);
+                if (GUI.Button(er[3], (Plugin.ItemEspAll.Value ? "[ON] " : "[off] ") + "Everything")) Plugin.ItemEspAll.Value = !Plugin.ItemEspAll.Value;
+            }
             if (Gui.Toggle("Auto pick the best answer in dialogues", Plugin.AutoPickBest.Value))
                 Plugin.AutoPickBest.Value = !Plugin.AutoPickBest.Value;
             if (Gui.Toggle("Minigame help: Connect 4 move, metal detector, ticket odds", Plugin.MinigameHelpers.Value))

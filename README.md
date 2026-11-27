@@ -54,6 +54,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Ball ESP for the cup game (the guy who shuffles the cans): a red box sits on the can that hides the ball and follows it through the whole shuffle
 * Choice hints: while you pick an answer in a conversation, a panel lists what every answer really does (karma, which vote gauge it pushes, money, items it needs, the odds of it working, how the scene ends) and marks the best one. It also shows the code of any keypad in the level. Off by default
 * Level name: the name of the level, its story id and the character in it show up for a few seconds when a level loads. On by default
+* Item ESP (F11): marks every cassette tape you do not have yet (yellow) and everything the game lets you pick up (blue) through walls, with its name and distance. Can also show every other thing you can interact with. Off by default
 * Auto pick: answers dialogues for you with the best answer (after a short wait you can change in the config). Only answers the game is really showing count. Off by default
 * Minigame help: the best Connect 4 move (worked out by the game's own AI) marked on the board, a marker on every hidden thing for the metal detector, the odds on scratch tickets, and a button that scores an air hockey goal
 * Endless lives and ammo in the arcade shooter and the shooting scenes. Off by default
@@ -63,7 +64,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Teleport straight to any character in the level, closest first
 
 **Command bar** (F9)
-* Type instead of clicking: `money 100`, `setmoney 500`, `karma 1`, `energy full`, `tp diner`, `wp diner`, `mission SONYA_6`, `queue SONYA_6`, `level <name>`, `spawn <name>`, `tapes`, `teen 3`, `speed 2`, `snapshot before border`, `freecam`, `noclip`, `photo`, `devview`, `hints`, `autopick`
+* Type instead of clicking: `money 100`, `setmoney 500`, `karma 1`, `energy full`, `tp diner`, `wp diner`, `mission SONYA_6`, `queue SONYA_6`, `level <name>`, `spawn <name>`, `tapes`, `teen 3`, `speed 2`, `snapshot before border`, `freecam`, `noclip`, `photo`, `devview`, `hints`, `autopick`, `esp`
 * Up and Down go through what you typed before, `help` lists everything
 
 **Third person** (F10, experimental)
@@ -137,6 +138,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 | F8 | Photo mode on or off (P photo, H hide panel) |
 | F9 | Command bar |
 | F10 | Third person camera on or off |
+| F11 | Item ESP on or off |
 
 All shortcuts can be changed in `BepInEx/config/serofix.road96toolkit.cfg` after the first launch. Modifiers work too, for example `Ctrl+Shift+F`. If you never changed the old Ctrl+F2 and Ctrl+F3 defaults, 1.3 moves them to F2 and F3 by itself.
 

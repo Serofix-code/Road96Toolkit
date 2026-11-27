@@ -50,6 +50,7 @@ namespace Road96Toolkit
             if (CommandBar.Open) { GameStates.Update(); return; }
             if (Plugin.MenuKey.Pressed()) SetOpen(!_open);
             if (Plugin.ThirdPersonKey.Pressed()) ThirdPerson.Toggle();
+            if (Plugin.ItemEspKey.Pressed()) ItemEsp.Toggle();
             if (Plugin.FreecamKey.Pressed()) Freecam.Toggle();
             if (Plugin.NoclipKey.Pressed()) Noclip.Toggle();
             if (Plugin.PickKey.Pressed()) SceneEditor.PickUnderCrosshair();
@@ -80,6 +81,7 @@ namespace Road96Toolkit
             PhotoMode.Update();
             LayoutShare.Update();
             MinigameHelpers.Update();
+            ItemEsp.Update();
             ThirdPerson.Update();
             CursorFix();
         }
@@ -146,6 +148,7 @@ namespace Road96Toolkit
             // clean frame for photos
             if (PhotoMode.HideEverything) return;
             CupEsp.Draw();
+            ItemEsp.Draw();
 
             float s = Mathf.Clamp(Plugin.MenuScale.Value, 0.5f, 3f);
             if (Math.Abs(s - 1f) > 0.01f)

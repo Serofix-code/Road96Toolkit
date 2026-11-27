@@ -35,7 +35,7 @@ namespace Road96Toolkit
             ("speed <x>", "game speed, 1 is normal"),
             ("snapshot [name]", "make a save snapshot"),
             ("freecam / noclip / photo / devview", "toggle those modes"),
-            ("hints / autopick", "toggle choice hints or auto pick"),
+            ("hints / autopick / esp", "toggle choice hints, auto pick or the item ESP"),
             ("clear", "clear this box"),
         };
 
@@ -198,6 +198,7 @@ namespace Road96Toolkit
                     case "photo": Toggle(); PhotoMode.Toggle(); return;
                     case "devview": case "dev": Toggle(); DevView.Toggle(); return;
                     case "hints": Plugin.ChoiceHints.Value = !Plugin.ChoiceHints.Value; Print("Choice hints " + (Plugin.ChoiceHints.Value ? "on" : "off")); break;
+                    case "esp": case "items": ItemEsp.Toggle(); Print("Item ESP " + (Plugin.ItemEsp.Value ? "on" : "off")); break;
                     case "autopick": Plugin.AutoPickBest.Value = !Plugin.AutoPickBest.Value; Print("Auto pick " + (Plugin.AutoPickBest.Value ? "on" : "off")); break;
                     default: Print("Unknown command, type help"); break;
                 }
