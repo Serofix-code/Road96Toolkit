@@ -34,6 +34,18 @@ namespace Road96Toolkit
         static Sprite _swap;          // what we keep on the HUD
         static string _swapName;
         static Sprite _original;
+        static bool _fromPicker;
+
+        // used by the teen picker: keep this picture on the HUD as soon as one exists
+        internal static void UseSprite(Sprite sp, string name)
+        {
+            _swap = sp; _swapName = name; _fromPicker = true; _nextCheck = 0f;
+        }
+
+        internal static void ClearPending()
+        {
+            if (_fromPicker) { _fromPicker = false; Restore(); }
+        }
         static EnergyBarUI _bar;
         static float _nextCheck;
 
@@ -203,6 +215,7 @@ namespace Road96Toolkit
                 var img = Portrait();
                 if (img == null) { ToolkitBehaviour.Toast("No HUD found, load into a trip first"); return; }
                 if (_swap == null) _original = img.sprite;
+                _fromPicker = false;
                 _swap = p.Sprite;
                 _swapName = p.Name;
                 img.sprite = _swap;
@@ -234,7 +247,12 @@ namespace Road96Toolkit
             {
                 var img = Portrait();
                 if (img == null) { _bar = null; return; }
-                if (img.sprite == null || img.sprite.Pointer != _swap.Pointer) img.sprite = _swap;
+                if (img.sprite == null || img.sprite.Pointer != _swap.Pointer)
+                {
+                    if (_original == null && img.sprite != null) _original = img.sprite;
+                    img.sprite = _swap;
+                    img.preserveAspect = true;
+                }
             }
             catch { _bar = null; }
         }

@@ -108,6 +108,7 @@ namespace Road96Toolkit
             ItemEspRange = Config.Bind("Cheats", "ItemEspRange", 80f, "How far away (in meters) the item ESP shows things");
             ArcadeGodMode = Config.Bind("Cheats", "ArcadeGodMode", false, "Endless lives and ammo in the arcade shooter and the shooting scenes");
 
+            TeenPicker.Patch(new HarmonyLib.Harmony(Guid));
             AddComponent<ToolkitBehaviour>();
             Log.LogInfo($"{Name} {Version} loaded. Press {MenuKey} in game.");
         }

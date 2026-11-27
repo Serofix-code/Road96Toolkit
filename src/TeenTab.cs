@@ -10,7 +10,22 @@ namespace Road96Toolkit
     internal static class TeenTab
     {
         static int _section;
-        static readonly string[] Sections = { "Teen and gender", "Age", "HUD icon" };
+        static readonly string[] Sections = { "Teen and gender", "Age", "HUD icon", "Teen picker" };
+
+        internal static int Faces(NB.NarrativeSettings s) => s == null ? _faces.Count : LoadFaces(s);
+
+        internal static NB.Gender? GenderOf(int id) => _faces.TryGetValue(id, out var fi) ? fi.Gender : (NB.Gender?)null;
+
+        internal static void DrawPortrait(Rect img, int id)
+        {
+            if (!_faces.TryGetValue(id, out var fi) || fi.Tex == null) return;
+            try
+            {
+                if (fi.Uv.width >= 0.999f && fi.Uv.height >= 0.999f) GUI.DrawTexture(img, fi.Tex, ScaleMode.ScaleToFit);
+                else GUI.DrawTextureWithTexCoords(img, fi.Tex, fi.Uv);
+            }
+            catch { }
+        }
 
         static int _genderFilter = -1; // -1 all, 0 male, 1 female
         static int _page;
@@ -28,13 +43,14 @@ namespace Road96Toolkit
 
         public static void Draw()
         {
-            var row = Gui.Row(3);
+            var row = Gui.Row(4);
             for (int i = 0; i < Sections.Length; i++)
                 if (GUI.Button(row[i], i == _section ? "[ " + Sections[i] + " ]" : Sections[i])) _section = i;
             Gui.Space(4);
 
             if (_section == 1) { AgeSection.Draw(); return; }
             if (_section == 2) { IconSwapper.Draw(); return; }
+            if (_section == 3) { TeenPicker.Draw(); return; }
 
             var ctx = Game.Context;
             var settings = Game.Settings;

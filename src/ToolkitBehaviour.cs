@@ -82,6 +82,7 @@ namespace Road96Toolkit
             LayoutShare.Update();
             MinigameHelpers.Update();
             ItemEsp.Update();
+            TeenPicker.Update();
             ThirdPerson.Update();
             CursorFix();
         }

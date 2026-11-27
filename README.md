@@ -35,6 +35,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Random teen button
 * Age chooser (one click ages from 12 to 21)
 * Age setter for an exact age, or a youngest and oldest age for the game to roll between
+* Teen picker: make your own teens with a face, a custom icon (PNG or JPG), starting money, energy, distance to the border, age, days missing and where they were last seen. Choose which of them show up on the three teen cards after Sonya's talk, or leave a card to the game. Your teens are kept in `BepInEx/config/Road96Toolkit/teens.json`
 * HUD icon swapper: replace the teen head in the top left corner with another teen's icon, any picture the game has loaded, or your own PNG or JPG (put them in `BepInEx/config/Road96Toolkit/icons`). Hover a name to see the picture
 
 **Abilities**
