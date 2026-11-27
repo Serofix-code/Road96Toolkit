@@ -78,6 +78,7 @@ namespace Road96Toolkit
             ChoiceHints.Update();
             DevView.Update();
             SavesTab.Update();
+            TripRewind.Update();
             PhotoMode.Update();
             LayoutShare.Update();
             MinigameHelpers.Update();
@@ -164,6 +165,7 @@ namespace Road96Toolkit
 
             LevelPopup.Draw();
             ChoiceHints.Draw();
+            FactPopups.Draw(s);
             MinigameHelpers.Draw();
             CommandBar.Draw(s);
             DevView.Draw(s);

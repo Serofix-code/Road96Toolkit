@@ -70,7 +70,14 @@ namespace Road96Toolkit
             catch (Exception e) { Plugin.Log.LogWarning("Pending restore failed: " + e.Message); }
         }
 
-        static byte[] ReadShared(string path)
+        internal static string GameSavePath => GameSave;
+        internal static bool AtMenu => AtMainMenu;
+        internal static void Rescan() => Scan();
+
+        static readonly string[] Sections = { "Snapshots", "Trip rewind" };
+        static int _section;
+
+        internal static byte[] ReadShared(string path)
         {
             using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             using var ms = new MemoryStream();
@@ -211,6 +218,13 @@ namespace Road96Toolkit
 
         public static void Draw()
         {
+            _section = Gui.Tabs(Sections, _section, Gui.TabKind.Section);
+            if (_section == 1) { TripRewind.Draw(); return; }
+            DrawSnapshots();
+        }
+
+        static void DrawSnapshots()
+        {
             if (_snaps.Count == 0 && Event.current?.type == EventType.Layout) Scan();
 
             Gui.Label("Current save: " + (File.Exists(GameSave) ? Summarize(GameSave) : "none yet"));
@@ -281,18 +295,20 @@ namespace Road96Toolkit
             }
         }
 
-        static void RestoreNow(Snap s)
+        static void RestoreNow(Snap s) => RestoreDir(s.Dir, "Save put back. Press Continue");
+
+        internal static void RestoreDir(string dir, string toast)
         {
             Game.Try("Restore", () =>
             {
                 BackupCurrent("before restore");
                 Directory.CreateDirectory(GameSaveDir);
-                File.Copy(Path.Combine(s.Dir, SaveFile), GameSave, true);
+                File.Copy(Path.Combine(dir, SaveFile), GameSave, true);
                 _lastSeenWrite = File.GetLastWriteTimeUtc(GameSave);
                 var sm = UnityEngine.Object.FindObjectOfType<SaveManager>();
                 sm?.LoadContext();
-                ToolkitBehaviour.Toast("Save put back. Press Continue");
-                Plugin.Log.LogInfo("Restored save from " + s.Dir);
+                ToolkitBehaviour.Toast(toast);
+                Plugin.Log.LogInfo("Restored save from " + dir);
                 Scan();
             });
         }

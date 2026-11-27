@@ -11,6 +11,9 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Jump to the border, the final border and the final road (with or without Zoe)
 * End the current trip with any ending: passed the border, arrested at the border, died, arrested, died at the border
 * Election gauges, shown with the candidate they help: Florres (Moderate), Tyrak (Individualist) and the revolution (Revolutionary). Raise or lower them, or make one win to steer the final ending
+* Ending planner (Story > Planner): pick a character's scenario and the way you want it to end, or a candidate to win the election. It shows every fact that ending needs, which earlier scenario gives each one, and what you already have. Queue the scenarios to do it for real, or give the facts straight away
+* Trip rewind (Saves tab): every time the game saves during a trip a rewind point is kept with the scenario, money and days. Pick one to go back there and try something else
+* Fact popups: a note in the corner every time the game gives or takes a fact, so you learn what each choice really does (can be turned off in the Facts section)
 * Facts: the game remembers what you did as facts (met Zoe, helped someone, finished a scenario). See which ones you have, search every known one with what needs it, switch any of them on or off, or type in your own. "This run" shows only what the teen you play now got or lost on this trip. Also `fact <name>` and `facts` in the command bar
 * Answers: while a conversation shows its answers, change what each one does before you pick it: its karma, which candidate it helps and by how much, and its odds (win, 50% or fail)
 * Dice rolls: make every chance in the game always win, always fail, or win at a percent you pick (Story > Answers, the World tab or `odds win` in the command bar)

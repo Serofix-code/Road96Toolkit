@@ -104,6 +104,29 @@ namespace Road96Toolkit
             });
         }
 
+        static Dictionary<string, string> _texts;
+
+        // the game's own description of a fact, if it has one
+        public static string TextOf(string tag)
+        {
+            if (_all.TryGetValue(tag, out var f) && f.Text.Length > 0) return f.Text;
+            if (_texts == null)
+            {
+                _texts = new Dictionary<string, string>(StringComparer.Ordinal);
+                Game.Try("Fact texts", () =>
+                {
+                    foreach (var o in Resources.FindObjectsOfTypeAll(Il2CppType.Of<NarrativeTagWrapper>()))
+                    {
+                        var w = o.TryCast<NarrativeTagWrapper>();
+                        if (w == null || string.IsNullOrEmpty(w._tag) || string.IsNullOrEmpty(w._bigChoiceText) || _texts.ContainsKey(w._tag)) continue;
+                        var s = ItemsTab.Loc(w._bigChoiceText);
+                        if (!string.IsNullOrEmpty(s) && s != w._bigChoiceText) _texts[w._tag] = s.Replace("\n", " ");
+                    }
+                });
+            }
+            return _texts.TryGetValue(tag, out var t) ? t : null;
+        }
+
         public static bool Has(string tag)
         {
             var ctx = Game.Context;
@@ -172,6 +195,8 @@ namespace Road96Toolkit
 
             Gui.Label($"The game remembers what you did as facts. You have {_have.Count}, {_all.Count} are known. Click one to switch it.");
             Gui.Label("Scenarios, answers and places check these, so a change takes effect the next time the game looks.");
+            if (Gui.Toggle("Show a note in the corner when the game gives or takes a fact", Plugin.FactPopups.Value))
+                Plugin.FactPopups.Value = !Plugin.FactPopups.Value;
 
             var r = Gui.Row(1f, 1f, 1.2f, 1f, 0.8f);
             string[] f = { "All", "I have", "I do not have", "This run" };

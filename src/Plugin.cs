@@ -34,6 +34,9 @@ namespace Road96Toolkit
         internal static ConfigEntry<bool> PhotoRememberLast;
         internal static ConfigEntry<bool> PhotoLookMovesCamera;
         internal static ConfigEntry<int> AutoBackupCount;
+        internal static ConfigEntry<bool> TripRewind;
+        internal static ConfigEntry<int> RewindTrips;
+        internal static ConfigEntry<bool> FactPopups;
         internal static ConfigEntry<bool> PreviewOnHover;
         internal static ConfigEntry<bool> AutoPickBest;
         internal static ConfigEntry<float> AutoPickDelay;
@@ -100,6 +103,9 @@ namespace Road96Toolkit
             PhotoPause = Config.Bind("PhotoMode", "PauseGame", true, "Pause the game when photo mode opens");
             AutoBackup = Config.Bind("Saves", "AutoBackup", true, "Copy the save every time the game writes it, to BepInEx/config/Road96Toolkit/saves/auto");
             AutoBackupCount = Config.Bind("Saves", "AutoBackupCount", 15, "How many automatic backups to keep");
+            TripRewind = Config.Bind("Saves", "TripRewind", true, "Keep a rewind point every time the game saves during a trip");
+            RewindTrips = Config.Bind("Saves", "RewindTrips", 5, "How many trips of rewind points to keep");
+            FactPopups = Config.Bind("Story", "FactPopups", true, "Show a note in the corner every time the game gives or takes a story fact");
             SavesTab.ApplyPendingRestore();
             CupEsp = Config.Bind("Cheats", "CupGameBallEsp", true, "Show which cup hides the ball in the shell game");
             AutoPickBest = Config.Bind("Cheats", "AutoPickBestAnswer", false, "Pick the best dialogue answer for you (the one choice hints marks as best)");

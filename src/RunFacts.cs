@@ -32,8 +32,9 @@ namespace Road96Toolkit
                 h.Patch(AccessTools.Method(t, nameof(NB.NarrativeContext.OnRunStarted)),
                     prefix: new HarmonyMethod(typeof(RunFacts), nameof(StartPrefix)),
                     postfix: new HarmonyMethod(typeof(RunFacts), nameof(StartPostfix)));
-                h.Patch(AccessTools.Method(t, nameof(NB.NarrativeContext.AddTag)), postfix: new HarmonyMethod(typeof(RunFacts), nameof(AddPostfix)));
-                h.Patch(AccessTools.Method(t, nameof(NB.NarrativeContext.RemoveTag)), postfix: new HarmonyMethod(typeof(RunFacts), nameof(RemovePostfix)));
+                var had = new HarmonyMethod(typeof(RunFacts), nameof(HadPrefix));
+                h.Patch(AccessTools.Method(t, nameof(NB.NarrativeContext.AddTag)), prefix: had, postfix: new HarmonyMethod(typeof(RunFacts), nameof(AddPostfix)));
+                h.Patch(AccessTools.Method(t, nameof(NB.NarrativeContext.RemoveTag)), prefix: had, postfix: new HarmonyMethod(typeof(RunFacts), nameof(RemovePostfix)));
             }
             catch (Exception e) { Plugin.Log.LogWarning("Run facts hook failed: " + e.Message); }
         }
@@ -62,7 +63,7 @@ namespace Road96Toolkit
             catch (Exception e) { Plugin.Log.LogWarning("runfacts.json: " + e.Message); }
         }
 
-        static string KeyOf(NB.NarrativeContext ctx)
+        internal static string KeyOf(NB.NarrativeContext ctx)
         {
             try { return $"{ctx.CurrentRuns}|{ctx._allTimeRuns?.Count ?? 0}|{ctx._isNewGamePlus}"; }
             catch { return ""; }
@@ -107,11 +108,19 @@ namespace Road96Toolkit
             catch (Exception e) { Plugin.Log.LogWarning("Run facts start: " + e.Message); }
         }
 
-        static void AddPostfix(NB.NarrativeContext __instance, string __0)
+        static void HadPrefix(NB.NarrativeContext __instance, string __0, out bool __state)
+        {
+            __state = false;
+            try { __state = !string.IsNullOrEmpty(__0) && __instance.HasTag(__0); } catch { }
+        }
+
+        static void AddPostfix(NB.NarrativeContext __instance, string __0, bool __state)
         {
             try
             {
-                if (string.IsNullOrEmpty(__0) || !IsMain(__instance) || !__instance._runStarted) return;
+                if (string.IsNullOrEmpty(__0) || !IsMain(__instance)) return;
+                if (!__state) FactPopups.Add(__0, true);
+                if (!__instance._runStarted) return;
                 var d = Current(__instance);
                 bool changed = d.Lost.Remove(__0);
                 if ((d.AtStart == null || !d.AtStart.Contains(__0)) && !d.Gained.Contains(__0)) { d.Gained.Add(__0); changed = true; }
@@ -120,11 +129,13 @@ namespace Road96Toolkit
             catch { }
         }
 
-        static void RemovePostfix(NB.NarrativeContext __instance, string __0)
+        static void RemovePostfix(NB.NarrativeContext __instance, string __0, bool __state)
         {
             try
             {
-                if (string.IsNullOrEmpty(__0) || !IsMain(__instance) || !__instance._runStarted || __instance.HasTag(__0)) return;
+                if (string.IsNullOrEmpty(__0) || !IsMain(__instance) || __instance.HasTag(__0)) return;
+                if (__state) FactPopups.Add(__0, false);
+                if (!__instance._runStarted) return;
                 var d = Current(__instance);
                 bool changed = d.Gained.Remove(__0);
                 if ((d.AtStart == null || d.AtStart.Contains(__0)) && !d.Lost.Contains(__0)) { d.Lost.Add(__0); changed = true; }
