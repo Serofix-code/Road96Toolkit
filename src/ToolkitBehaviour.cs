@@ -10,8 +10,12 @@ namespace Road96Toolkit
 
         internal static ToolkitBehaviour Instance;
 
-        static readonly string[] TabNames = { "Story", "Levels", "Teen", "Abilities", "World", "Freecam", "Spawner", "Scene editor", "Dev menu" };
-        const int DevTab = 8;
+        static readonly string[] TabNames = { "Story", "Levels", "Teen", "Abilities", "Items", "World", "Freecam", "Spawner", "Scene editor", "Dev menu" };
+        const int DevTab = 9;
+        internal const int SceneEditorTab = 8;
+
+        internal void CloseMenu() { if (_open) SetOpen(false); }
+        internal void OpenTab(int tab) { _tab = tab; if (!_open) SetOpen(true); }
         int _tab;
 
         bool _open;
@@ -45,6 +49,7 @@ namespace Road96Toolkit
             if (Plugin.FreecamKey.Pressed()) Freecam.Toggle();
             if (Plugin.NoclipKey.Pressed()) Noclip.Toggle();
             if (Plugin.PickKey.Pressed()) SceneEditor.PickUnderCrosshair();
+            if (Plugin.DevViewKey.Pressed()) DevView.Toggle();
             if (Plugin.HideUiKey.Pressed()) WorldTab.ToggleHud();
             if (Plugin.DevMenuKey.Pressed())
             {
@@ -63,13 +68,16 @@ namespace Road96Toolkit
             CharacterCatalog.Update();
             NpcPreview.Update();
             IconSwapper.Update();
+            LevelPopup.Update();
+            ChoiceHints.Update();
+            DevView.Update();
             CursorFix();
         }
 
         void LateUpdate()
         {
             Freecam.LateUpdate();
-            if (_open)
+            if (_open || DevView.Active)
             {
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
@@ -136,10 +144,14 @@ namespace Road96Toolkit
                 GUI.Box(tr, _toast);
             }
 
+            LevelPopup.Draw();
+            ChoiceHints.Draw();
+            DevView.Draw(s);
+
             if (Noclip.Active && !_open)
                 GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), $"Noclip  |  WASD fly where you look  Space/E up  Q down  Shift fast  Alt slow  Scroll speed ({Noclip.Speed:0.0})  {Plugin.NoclipKey} to stop");
 
-            if (Freecam.Active && !_open)
+            if (Freecam.Active && !_open && !DevView.Active)
                 GUI.Label(new Rect(10, Screen.height / s - 26, 900, 24), "Freecam  |  WASD move  Q/E down/up  Shift fast  Ctrl slow  Scroll speed  " + Plugin.FreecamKey + " or Backspace for teen view");
 
             if (!_open) return;
@@ -156,7 +168,7 @@ namespace Road96Toolkit
 
             // two rows of tabs
             var r1 = Gui.Row(5);
-            var r2 = Gui.Row(4);
+            var r2 = Gui.Row(5);
             for (int i = 0; i < TabNames.Length; i++)
             {
                 var rect = i < 5 ? r1[i] : r2[i - 5];
@@ -173,11 +185,12 @@ namespace Road96Toolkit
                     case 1: LevelsTab.Draw(); break;
                     case 2: TeenTab.Draw(); break;
                     case 3: AbilitiesTab.Draw(); break;
-                    case 4: WorldTab.Draw(); break;
-                    case 5: Freecam.Draw(); break;
-                    case 6: Spawner.Draw(); break;
-                    case 7: SceneEditor.Draw(); break;
-                    case 8: DevMenuTab.Draw(); break;
+                    case 4: ItemsTab.Draw(); break;
+                    case 5: WorldTab.Draw(); break;
+                    case 6: Freecam.Draw(); break;
+                    case 7: Spawner.Draw(); break;
+                    case 8: SceneEditor.Draw(); break;
+                    case 9: DevMenuTab.Draw(); break;
                 }
             }
             catch (Exception e)
@@ -186,7 +199,7 @@ namespace Road96Toolkit
                 Gui.Label(e.Message);
             }
 
-            try { NpcPreview.Draw(_window); } catch { }
+            if (!DevView.Active) try { NpcPreview.Draw(_window); } catch { }
         }
 
         void HandleDrag(float s)

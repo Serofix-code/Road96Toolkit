@@ -9,7 +9,7 @@ namespace Road96Toolkit
     // Clones characters (or any prefab that is loaded in memory) in front of the camera.
     internal static class Spawner
     {
-        class Source
+        internal class Source
         {
             public GameObject Go;
             public string Name;
@@ -34,8 +34,18 @@ namespace Road96Toolkit
 
         static void Scan()
         {
-            _sources.Clear();
             _sel = null;
+            _sources = Gather(_mode);
+            if (_mode == 1) _catalogSeen = CharacterCatalog.Entries.Count;
+            _lastSearch = null;
+            Plugin.Log.LogInfo($"Spawner found {_sources.Count} entries in mode {_mode}");
+        }
+
+        // 0 characters loaded here, 1 characters copied from other levels, 2 any prefab
+        internal static List<Source> Gather(int mode)
+        {
+            var _sources = new List<Source>();
+            int _mode = mode;
             Game.Try("Scan characters", () =>
             {
                 if (_mode == 0)
@@ -58,7 +68,6 @@ namespace Road96Toolkit
                 {
                     foreach (var e in CharacterCatalog.Entries)
                         if (e.Template != null) _sources.Add(new Source { Go = e.Template, Name = e.Name, Kind = "from " + e.From });
-                    _catalogSeen = CharacterCatalog.Entries.Count;
                 }
                 else
                 {
@@ -78,9 +87,11 @@ namespace Road96Toolkit
                 }
             });
             _sources.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
-            _lastSearch = null;
-            Plugin.Log.LogInfo($"Spawner found {_sources.Count} entries in mode {_mode}");
+            return _sources;
         }
+
+        internal static void Track(GameObject go) { if (go != null && !_spawned.Contains(go)) _spawned.Add(go); }
+        internal static bool StayStill => _stayStill;
 
         static bool IsOurs(GameObject go)
         {

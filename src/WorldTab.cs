@@ -117,9 +117,13 @@ namespace Road96Toolkit
             if (GUI.Button(r[3], "2x")) { Time.timeScale = 2f; FixSound(false); }
 
             Gui.Space();
-            Gui.Header("Minigames");
+            Gui.Header("Helpers");
             if (Gui.Toggle("Show the ball in the cup game" + (CupEsp.Found > 0 ? "  (game found)" : ""), Plugin.CupEsp.Value))
                 Plugin.CupEsp.Value = !Plugin.CupEsp.Value;
+            if (Gui.Toggle("Choice hints: what each answer does, the best one, keypad codes", Plugin.ChoiceHints.Value))
+                Plugin.ChoiceHints.Value = !Plugin.ChoiceHints.Value;
+            if (Gui.Toggle("Show the level name when a level loads", Plugin.LevelNamePopup.Value))
+                Plugin.LevelNamePopup.Value = !Plugin.LevelNamePopup.Value;
 
             Gui.Space();
             Gui.Header("Sound");

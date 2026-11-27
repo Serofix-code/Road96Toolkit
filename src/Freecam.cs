@@ -90,16 +90,16 @@ namespace Road96Toolkit
         {
             if (!Active) return;
             if (_cam == null) { Disable(); return; }
-            if (!ToolkitBehaviour.IsOpen && InputHelper.Down(KeyCode.Backspace)) { GameStates.BackToTeenView(); return; }
+            if (!ToolkitBehaviour.IsOpen && !DevView.Active && InputHelper.Down(KeyCode.Backspace)) { GameStates.BackToTeenView(); return; }
 
             float dt = Time.unscaledDeltaTime;
 
-            float scroll = InputHelper.Scroll();
+            float scroll = DevView.Active && DevView.OverUi ? 0f : InputHelper.Scroll();
             if (Math.Abs(scroll) > 0.01f)
                 _speed = Mathf.Clamp(_speed * (scroll > 0 ? 1.2f : 1f / 1.2f), 0.2f, 400f);
 
             // look: always while the toolkit window is closed, right mouse while it is open
-            if (!ToolkitBehaviour.IsOpen || InputHelper.RightMouseHeld())
+            if ((!ToolkitBehaviour.IsOpen && !DevView.Active) || InputHelper.RightMouseHeld())
             {
                 var d = InputHelper.MouseDelta();
                 _yaw += d.x * 0.1f;
@@ -139,6 +139,7 @@ namespace Road96Toolkit
             if (GUI.Button(top[0], (Active ? "[ON] " : "[off] ") + "Freecam (" + Plugin.FreecamKey + ")")) Toggle();
             if (GUI.Button(top[1], "Back to teen view")) GameStates.BackToTeenView();
             if (Gui.Toggle("Lock the player while flying", _lockPlayer)) _lockPlayer = !_lockPlayer;
+            if (Gui.Toggle("Dev view: freecam with a spawn palette and a character editor (" + Plugin.DevViewKey + ")", DevView.Active)) DevView.Toggle();
             Gui.Space();
             Gui.Header("Noclip");
             Gui.Label("Fly your teen through walls. You stay in control and can stop anywhere.");

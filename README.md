@@ -1,6 +1,6 @@
 # Road96 Toolkit
 
-A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, noclip, a scene editor, a character spawner with a 3D preview, a level and mission starter, the developers' debug menu and full control over the story: pick the scenario, the ending, which teen you play, their gender and age, your money and your abilities.
+A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free camera, noclip, a scene editor, a character spawner with a 3D preview, a level and mission starter, a dev view editor, choice hints, a collectible giver, the developers' debug menu and full control over the story: pick the scenario, the ending, which teen you play, their gender and age, your money and your abilities.
 
 
 ## Features
@@ -16,6 +16,10 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Start any mission in the game straight away, from the first hitchhike to the last border
 * Load any level on its own, including the developers' test and prototype levels left in the build
 * Raw scenes: add any of the 178 scene files to the world, or unload them again
+
+**Items**
+* Collectible giver: every cassette tape in the game, see which ones you have, give or take any of them, or give them all at once
+* Every other inventory item too (vouchers, quest items and so on)
 
 **Teen**
 * See all the teens with their portraits and play as any of them (portraits fixed in 1.3)
@@ -38,8 +42,10 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Hide the game HUD for clean screenshots
 * Fix sound button: the game mutes everything while the game speed is 0 and does not always unmute, this puts it back
 
-**Minigames**
+**Helpers** (each one can be turned on or off in the World tab)
 * Ball ESP for the cup game (the guy who shuffles the cans): a red box sits on the can that hides the ball and follows it through the whole shuffle
+* Choice hints: while you pick an answer in a conversation, a panel lists what every answer really does (karma, which vote gauge it pushes, money, items it needs, the odds of it working, how the scene ends) and marks the best one. It also shows the code of any keypad in the level. Off by default
+* Level name: the name of the level, its story id and the character in it show up for a few seconds when a level loads. On by default
 
 **Noclip**
 * Fly your teen through walls and floors with WASD where you look, Space or E up, Q down, Shift fast, Alt slow
@@ -52,6 +58,15 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Back to teen view with one button or Backspace
 * Teleport your teen to where the camera is
 * The game hides a developer fly mode that can switch on by itself. The toolkit turns it off when that happens (you can allow it in the config)
+
+**Dev view** (F7)
+* An editor mode built on the freecam. Hold the right mouse button to look around, the cursor stays free for clicking
+* Spawn palette on the left with the characters of this level, characters copied from other levels, and props. Rest the mouse on a name for the 3D preview
+* Click a name, then click in the world to place it. Shift+click places more, R turns it
+* Click any character or object in the world to select it. A frame shows what is selected
+* Inspector on the right: move it with the mouse (G), nudge it, turn it, scale it, drop it to the ground, make it face you, bring it to you
+* For characters: make them stand still or go back to their routine, freeze or speed up their animation, mute them
+* Copy (Ctrl+D), delete (Del), hide, or open it in the scene editor. Moves are remembered for the layout saver
 
 **Character spawner**
 * Lists every character the current area has loaded (and any other prefab in memory)
@@ -81,6 +96,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 | F5 | Select the object in the middle of the screen |
 | F4 | Hide or show the HUD |
 | F6 | Open the developer menu tab |
+| F7 | Dev view on or off |
 
 All shortcuts can be changed in `BepInEx/config/serofix.road96toolkit.cfg` after the first launch. Modifiers work too, for example `Ctrl+Shift+F`. If you never changed the old Ctrl+F2 and Ctrl+F3 defaults, 1.3 moves them to F2 and F3 by itself.
 
@@ -103,6 +119,16 @@ If you also have MelonLoader installed, remove or rename its `version.dll` first
 * Copying characters from other levels is experimental. A level can run some of its own logic in the second it is loaded, so save first.
 * Spawned characters are copies. They look and animate like the original but are not part of the story, so they will not talk to you.
 * Ending a trip early saves it like a normal ending. Back up your saves first if you care about them: `%USERPROFILE%\AppData\LocalLow\DigixArt\Road 96`
+
+## Open source
+
+All the code is here under the MIT license, so you can read it, change it, fork it and reuse it in your own mods. Bug reports, ideas and pull requests are welcome in the Issues and Pull requests tabs.
+
+How it is put together:
+* `src/Plugin.cs` loads the plugin and its settings
+* `src/ToolkitBehaviour.cs` is the window and the tabs
+* One file per tab or feature (`StoryTab.cs`, `LevelsTab.cs`, `DevView.cs`, `ChoiceHints.cs` and so on)
+* `src/Gui.cs` is a small layout helper, since the game strips Unity's automatic GUI layout
 
 ## Building
 

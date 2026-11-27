@@ -12,7 +12,7 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.3.0";
+        public const string Version = "1.4.0";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;
@@ -24,6 +24,10 @@ namespace Road96Toolkit
         internal static ConfigEntry<bool> BlockGameFlyMode;
         internal static ConfigEntry<bool> CupEsp;
         internal static ConfigEntry<float> PreviewExposure;
+        internal static ConfigEntry<bool> ChoiceHints;
+        internal static ConfigEntry<bool> LevelNamePopup;
+        internal static ConfigEntry<float> LevelNamePopupSeconds;
+        internal static Hotkey DevViewKey;
         internal static ConfigEntry<bool> PreviewOnHover;
 
         static bool _upgradeKeys;
@@ -58,6 +62,7 @@ namespace Road96Toolkit
             PickKey = BindKey(Config, "PickObject", "F5", "Select whatever is in the middle of the screen for the scene editor", "F3");
             HideUiKey = BindKey(Config, "HideHud", "F4", "Hide or show the game HUD");
             DevMenuKey = BindKey(Config, "DeveloperMenu", "F6", "Open the game's own developer debug menu");
+            DevViewKey = BindKey(Config, "DevView", "F7", "Dev view: freecam with a spawn palette, click to place and edit characters");
 
             FreezeWithMenu = Config.Bind("General", "FreezePlayerWhileMenuOpen", true, "Stop the player from walking and looking around while the window is open");
             MenuScale = Config.Bind("General", "MenuScale", 1f, "Scale of the window, 1 is normal, try 1.5 on 4K screens");
@@ -67,6 +72,9 @@ namespace Road96Toolkit
 
             PreviewExposure = Config.Bind("Preview", "Exposure", 7f, "Exposure of the 3D character preview. Higher is darker");
             PreviewOnHover = Config.Bind("Preview", "ShowOnHover", true, "Show the 3D preview when the mouse rests on a character in the spawner list");
+            ChoiceHints = Config.Bind("Cheats", "ChoiceHints", false, "Show what every dialogue choice does (karma, vote, money, odds), which one is best, and keypad codes");
+            LevelNamePopup = Config.Bind("General", "LevelNamePopup", true, "Show the name of a level for a few seconds after it loads");
+            LevelNamePopupSeconds = Config.Bind("General", "LevelNamePopupSeconds", 4f, "How long the level name stays on screen");
             CupEsp = Config.Bind("Cheats", "CupGameBallEsp", true, "Show which cup hides the ball in the shell game");
 
             AddComponent<ToolkitBehaviour>();

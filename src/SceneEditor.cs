@@ -291,7 +291,7 @@ namespace Road96Toolkit
             Gui.Label("Layouts go to BepInEx/config/Road96Toolkit/layouts, one file per scene.");
         }
 
-        static void Remember(Transform t)
+        internal static void Remember(Transform t)
         {
             if (t == null) return;
             var go = t.gameObject;
@@ -312,7 +312,7 @@ namespace Road96Toolkit
             };
         }
 
-        static string PathOf(Transform t)
+        internal static string PathOf(Transform t)
         {
             var parts = new List<string>();
             while (t != null)

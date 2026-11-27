@@ -104,6 +104,43 @@ namespace Road96Toolkit
             catch { return 0f; }
         }
 
+        public static bool LeftMouseDown()
+        {
+            Detect();
+            try
+            {
+                if (_mode == 0) return Input.GetMouseButtonDown(0);
+                var m = NewInput.Mouse.current;
+                return m != null && m.leftButton.wasPressedThisFrame;
+            }
+            catch { return false; }
+        }
+
+        public static bool RightMouseDown()
+        {
+            Detect();
+            try
+            {
+                if (_mode == 0) return Input.GetMouseButtonDown(1);
+                var m = NewInput.Mouse.current;
+                return m != null && m.rightButton.wasPressedThisFrame;
+            }
+            catch { return false; }
+        }
+
+        // bottom left origin, like Input.mousePosition
+        public static Vector2 MousePosition()
+        {
+            Detect();
+            try
+            {
+                if (_mode == 0) return Input.mousePosition;
+                var m = NewInput.Mouse.current;
+                return m == null ? Vector2.zero : m.position.ReadValue();
+            }
+            catch { return Vector2.zero; }
+        }
+
         public static bool RightMouseHeld()
         {
             Detect();
