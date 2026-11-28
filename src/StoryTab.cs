@@ -27,7 +27,7 @@ namespace Road96Toolkit
         static Entry _selected;
         static int _section;
 
-        static readonly string[] Sections = { "Scenarios", "Tracker", "Planner", "Facts", "Answers", "Endings", "Election" };
+        static readonly string[] Sections = { "Scenarios", "Tracker", "Planner", "Facts", "Answers", "Unlocks", "Endings", "Election" };
 
         public static void Draw()
         {
@@ -47,8 +47,9 @@ namespace Road96Toolkit
                 case 2: EndingPlanner.Draw(ctrl); break;
                 case 3: FactsEditor.Draw(); break;
                 case 4: ChoiceEditor.DrawAnswers(); break;
-                case 5: DrawEndings(); break;
-                case 6: DrawElection(); break;
+                case 5: Requirements.Draw(); break;
+                case 6: DrawEndings(); break;
+                case 7: DrawElection(); break;
             }
         }
 

@@ -23,7 +23,7 @@ namespace Road96Toolkit
         static string _search = "", _lastSearch = null;
         static int _lastSection = -1, _page;
 
-        static string NameOf(InventoryItem it)
+        internal static string NameOf(InventoryItem it)
         {
             try
             {

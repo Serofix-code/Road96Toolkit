@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 //
 //   TypeDump find <word or regex>          which assembly a class is in
 //   TypeDump <Assembly> <Class> [Class...] every field, property and method of those classes
+//   TypeDump all [folder]                  every class of every game assembly, one text file per assembly
 //
 // Set ROAD96 to your game folder if it is not the default Steam one.
 
@@ -26,10 +27,11 @@ static class Program
             Console.WriteLine("No BepInEx/interop folder in " + game + ". Start the game with BepInEx once, or set ROAD96.");
             return 1;
         }
-        if (args.Length < 2)
+        if (args.Length < 2 && !(args.Length == 1 && args[0] == "all"))
         {
             Console.WriteLine("TypeDump find <word>");
             Console.WriteLine("TypeDump <Assembly> <Class> [Class...]");
+            Console.WriteLine("TypeDump all [folder]");
             Console.WriteLine("example: TypeDump NarrativeBrain NarrativeContext Run");
             return 1;
         }
@@ -45,6 +47,7 @@ static class Program
         };
 
         if (args[0] == "find") { Find(args[1]); return 0; }
+        if (args[0] == "all") { All(args.Length > 1 ? args[1] : "dump"); return 0; }
 
         var asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.Combine(_bep, "interop", args[0] + ".dll"));
         var types = Types(asm);
@@ -68,14 +71,47 @@ static class Program
         var rx = new Regex(pattern, RegexOptions.IgnoreCase);
         foreach (var f in Directory.GetFiles(Path.Combine(_bep, "interop"), "*.dll"))
         {
-            var n = Path.GetFileName(f);
-            if (n.StartsWith("Unity") || n.StartsWith("Il2Cpp") || n.StartsWith("System") || n.StartsWith("mscorlib")) continue;
+            if (!GameAssembly(f)) continue;
             Assembly a;
             try { a = AssemblyLoadContext.Default.LoadFromAssemblyPath(f); } catch { continue; }
             foreach (var t in Types(a))
                 if (rx.IsMatch(t.Name))
                     Console.WriteLine(Path.GetFileNameWithoutExtension(f) + ": " + t.FullName + " : " + BaseName(t));
         }
+    }
+
+    static bool GameAssembly(string file)
+    {
+        var n = Path.GetFileName(file);
+        return !(n.StartsWith("Unity") || n.StartsWith("Il2Cpp") || n.StartsWith("System") || n.StartsWith("mscorlib"));
+    }
+
+    // writes the whole game API to text files, so you can search it with any editor
+    static void All(string folder)
+    {
+        Directory.CreateDirectory(folder);
+        var console = Console.Out;
+        int files = 0, count = 0;
+        foreach (var f in Directory.GetFiles(Path.Combine(_bep, "interop"), "*.dll"))
+        {
+            if (!GameAssembly(f)) continue;
+            Assembly a;
+            try { a = AssemblyLoadContext.Default.LoadFromAssemblyPath(f); } catch { continue; }
+            var types = Types(a).OrderBy(t => t.FullName).ToArray();
+            if (types.Length == 0) continue;
+            using (var w = new StreamWriter(Path.Combine(folder, Path.GetFileNameWithoutExtension(f) + ".txt")))
+            {
+                Console.SetOut(w);
+                foreach (var t in types)
+                {
+                    try { Dump(t); } catch (Exception e) { Console.WriteLine("  (could not read: " + e.GetType().Name + ")"); }
+                    count++;
+                }
+            }
+            Console.SetOut(console);
+            files++;
+        }
+        Console.WriteLine($"{count} classes from {files} assemblies written to {Path.GetFullPath(folder)}");
     }
 
     static string BaseName(Type t)

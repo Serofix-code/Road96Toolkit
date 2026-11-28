@@ -16,6 +16,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Fact popups: a note in the corner every time the game gives or takes a fact, so you learn what each choice really does (can be turned off in the Facts section)
 * Facts: the game remembers what you did as facts (met Zoe, helped someone, finished a scenario). See which ones you have, search every known one with what needs it, switch any of them on or off, or type in your own. "This run" shows only what the teen you play now got or lost on this trip. Also `fact <name>` and `facts` in the command bar
 * Answers: while a conversation shows its answers, change what each one does before you pick it: its karma, which candidate it helps and by how much, and its odds (win, 50% or fail)
+* Unlocks (Story > Unlocks): see what a phone call or conversation checks before an answer or line shows up, like a fact, an item or an ability, and give the current teen whatever is missing in one click. Works for every payphone number before you call, and for the conversation on screen, where it can also pick an answer the game hid
 * Dice rolls: make every chance in the game always win, always fail, or win at a percent you pick (Story > Answers, the World tab or `odds win` in the command bar)
 * Story tracker: every scenario with a played or not played mark, progress per character, and a filter for the ones you can play right now. Pick one to see what it needs and what blocks it, queue it, or give yourself what it needs in one click
 

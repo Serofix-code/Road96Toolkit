@@ -264,7 +264,9 @@ namespace Road96Toolkit
             float y = r.y + 4;
             if (_hints.Count > 0)
             {
-                GUI.Label(new Rect(r.x + 8, y, w - 16, 20), "Choice hints" + (Plugin.AutoPickBest.Value ? "   (auto pick is on)" : ""));
+                int locked = Requirements.LockedOnScreen();
+                GUI.Label(new Rect(r.x + 8, y, w - 16, 20), "Choice hints" + (Plugin.AutoPickBest.Value ? "   (auto pick is on)" : "") +
+                    (locked > 0 ? $"   {locked} locked, Story > Unlocks" : ""));
                 y += 22;
                 for (int i = 0; i < _hints.Count; i++)
                 {

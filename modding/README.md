@@ -9,9 +9,10 @@ Everything here was read from the game's own code (the interop DLLs BepInEx make
 * [story.md](story.md): the story system. Facts, scenarios, endings, trips, money, karma, the election, dice rolls
 * [items-tapes-audio.md](items-tapes-audio.md): items, cassette tapes, sound and game text
 * [player-ui-saves.md](player-ui-saves.md): the player, pause menu, teen select screen, end of trip screen and save files
+* [dialogue-phone.md](dialogue-phone.md): conversations, answers, the conditions that lock them, and payphone numbers
 * [hooks.md](hooks.md): Harmony hooks that I know work, and how to write them for this game
 * [ExampleMod](ExampleMod): a tiny mod that builds as is. Copy it to start your own
-* [TypeDump](TypeDump): a small tool that lists every field and method of any game class
+* [TypeDump](TypeDump): a small tool that lists every field and method of any game class, or dumps the whole game API to text files
 
 ## Setup
 
