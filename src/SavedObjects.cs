@@ -31,6 +31,9 @@ namespace Road96Toolkit
             public float[] Rot { get; set; }
             public float[] Scale { get; set; }
             public bool Active { get; set; } = true;
+            public string Mesh { get; set; }
+            public int MeshVerts { get; set; }
+            public List<string> Materials { get; set; }
         }
 
         static string Folder => Path.Combine(BepInEx.Paths.ConfigPath, "Road96Toolkit", "saved");
@@ -78,6 +81,15 @@ namespace Road96Toolkit
             _source[clone.Pointer] = (original.scene.name, SceneEditor.PathOf(original.transform), original.transform.parent != null);
         }
 
+        // something placed from a mesh in the asset manager
+        static readonly Dictionary<IntPtr, (string mesh, int verts, List<string> mats)> _meshOf = new Dictionary<IntPtr, (string, int, List<string>)>();
+
+        public static void NoteMesh(GameObject go, Mesh mesh, IList<Material> mats)
+        {
+            if (go == null || mesh == null) return;
+            _meshOf[go.Pointer] = (mesh.name, mesh.vertexCount, mats?.Where(m => m != null).Select(m => m.name).ToList() ?? new List<string>());
+        }
+
         public static void Keep(GameObject go)
         {
             if (go == null || IsKept(go)) return;
@@ -90,6 +102,7 @@ namespace Road96Toolkit
                 From = Spawner.OriginOf(go),
             };
             if (_source.TryGetValue(go.Pointer, out var s)) { e.SourceScene = s.scene; e.SourcePath = s.path; e.Parented = s.parented; }
+            if (_meshOf.TryGetValue(go.Pointer, out var mi)) { e.Mesh = mi.mesh; e.MeshVerts = mi.verts; e.Materials = mi.mats; }
             Fill(e, t);
             if (!_byScene.TryGetValue(e.Scene, out var list)) _byScene[e.Scene] = list = new List<Entry>();
             list.Add(e);
@@ -241,6 +254,34 @@ namespace Road96Toolkit
                     Spawner.Track(clone, "here");
                     _source[clone.Pointer] = (e.SourceScene ?? e.Scene, e.SourcePath, e.Parented);
                     res = clone;
+                }
+                else if (!string.IsNullOrEmpty(e.Mesh))
+                {
+                    Mesh mesh = null;
+                    foreach (var o in Resources.FindObjectsOfTypeAll(Il2CppInterop.Runtime.Il2CppType.Of<Mesh>()))
+                    {
+                        var m = o.TryCast<Mesh>();
+                        if (m != null && m.name == e.Mesh && (e.MeshVerts == 0 || m.vertexCount == e.MeshVerts)) { mesh = m; break; }
+                    }
+                    if (mesh == null) return;
+                    var mats = new List<Material>();
+                    if (e.Materials != null && e.Materials.Count > 0)
+                    {
+                        var byName = new Dictionary<string, Material>();
+                        foreach (var o in Resources.FindObjectsOfTypeAll(Il2CppInterop.Runtime.Il2CppType.Of<Material>()))
+                        {
+                            var m = o.TryCast<Material>();
+                            if (m != null && !byName.ContainsKey(m.name)) byName[m.name] = m;
+                        }
+                        foreach (var n in e.Materials) if (byName.TryGetValue(n, out var m)) mats.Add(m);
+                    }
+                    var tplm = AssetBrowser.MeshTemplate(mesh, mats);
+                    var tm = Spawner.SpawnAt(tplm, e.Template, pos, rot, "here");
+                    UnityEngine.Object.Destroy(tplm);
+                    if (tm == null) return;
+                    tm.gameObject.SetActive(e.Active);
+                    _meshOf[tm.gameObject.Pointer] = (e.Mesh, e.MeshVerts, e.Materials ?? new List<string>());
+                    res = tm.gameObject;
                 }
                 else
                 {

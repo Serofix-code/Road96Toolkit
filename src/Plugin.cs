@@ -126,6 +126,7 @@ namespace Road96Toolkit
             Skips.Init(Config);
             Height.Init(Config);
             SavedObjects.Init(Config);
+            DiskMeshes.Start();
             Skips.Patch(harmony);
             RunFacts.Patch(harmony);
             AddComponent<ToolkitBehaviour>();

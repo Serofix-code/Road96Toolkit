@@ -8,13 +8,13 @@ using UnityEngine;
 
 namespace Road96Toolkit
 {
-    // Saves the selected object (and everything under it) as a Wavefront .obj with a .mtl and the
-    // base colour textures as PNG, so it opens in Blender or any 3D program.
+    // Saves objects as Wavefront .obj with a .mtl and the base colour textures as PNG, so they open
+    // in Blender or any 3D program (File > Import > Wavefront).
     //
-    // Characters are posed as they are right now (their skinned meshes are baked first). Some meshes
-    // are locked by the game (not readable from scripts); those are skipped and listed in the log.
-    // Level geometry that Unity merged into one big mesh (static batching) is cut back out by finding
-    // the parts of the merged mesh that sit inside the object.
+    // The game locks most of its meshes in memory, so those are read from the game's files instead
+    // (see DiskMeshes). Characters are posed as they stand right now: their skin is moved with their
+    // own skeleton. Level geometry that Unity merged into one big mesh (static batching) is cut back
+    // out by keeping the parts of the merged mesh that sit inside the object.
     internal static class ObjExport
     {
         public static string Folder => Path.Combine(BepInEx.Paths.ConfigPath, "Road96Toolkit", "exported", "models");
@@ -30,110 +30,231 @@ namespace Road96Toolkit
             public Matrix4x4 ToRoot;
         }
 
+        class Job
+        {
+            public Matrix4x4 ToRoot;
+            public readonly List<Part> Parts = new List<Part>();
+            public readonly List<string> Locked = new List<string>();
+            public readonly HashSet<string> Done = new HashSet<string>();
+            public int FromDisk;
+        }
+
         public static string LastResult { get; private set; }
 
         public static void Export(GameObject go)
         {
             if (go == null) return;
+            var name = go.name.Replace(" (toolkit)", "").Trim();
+            Run(name, go.transform.worldToLocalMatrix, go.GetComponentsInChildren<Renderer>(true).ToList());
+        }
+
+        // everything around a point, as one file with the point in the middle
+        public static void ExportArea(Vector3 center, float radius)
+        {
+            var list = new List<Renderer>();
+            Game.Try("Find area", () =>
+            {
+                foreach (var r in UnityEngine.Object.FindObjectsOfType<Renderer>())
+                {
+                    if (r == null || !r.enabled || !r.gameObject.activeInHierarchy) continue;
+                    if (r.TryCast<ParticleSystemRenderer>() != null) continue;
+                    if (r.bounds.SqrDistance(center) > radius * radius) continue;
+                    list.Add(r);
+                }
+            });
+            Run($"area {TravelTab.SceneName} {(int)radius}m {DateTime.Now:HHmmss}", Matrix4x4.Translate(-center), list);
+        }
+
+        // a mesh asset on its own
+        public static bool ExportMesh(Mesh mesh, IList<Material> mats, bool quiet = false)
+        {
+            if (mesh == null) return false;
+            bool ok = false;
+            Game.Try("Export mesh", () =>
+            {
+                var job = new Job { ToRoot = Matrix4x4.identity };
+                var g = Geo(mesh, -1, job, mesh.name);
+                if (g != null) job.Parts.Add(ToPart(mesh.name, g, mats, Matrix4x4.identity, null));
+                ok = Save(mesh.name, job, quiet);
+            });
+            return ok;
+        }
+
+        static void Run(string name, IList<Renderer> renderers) => Run(name, Matrix4x4.identity, renderers);
+
+        static void Run(string name, Matrix4x4 toRoot, IList<Renderer> renderers)
+        {
             Game.Try("Export OBJ", () =>
             {
-                var root = go.transform;
-                var name = SceneEditor.Safe(go.name.Replace(" (toolkit)", "").Trim());
-                var dir = Path.Combine(Folder, name);
-                Directory.CreateDirectory(dir);
-
-                var parts = new List<Part>();
-                var locked = new List<string>();
-                var toRoot = root.worldToLocalMatrix;
-
-                foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+                var job = new Job { ToRoot = toRoot };
+                foreach (var r in renderers)
                 {
                     if (r == null) continue;
-                    var smr = r.TryCast<SkinnedMeshRenderer>();
-                    if (smr != null) { AddSkinned(smr, toRoot, parts, locked); continue; }
-                    var mr = r.TryCast<MeshRenderer>();
-                    if (mr == null) continue;
-                    var mf = mr.GetComponent<MeshFilter>();
-                    var mesh = mf != null ? mf.sharedMesh : null;
-                    if (mesh == null) continue;
-                    if (mr.isPartOfStaticBatch) AddBatched(mr, mesh, toRoot, parts, locked);
-                    else AddMesh(mr.name, mesh, mr.sharedMaterials, toRoot * mr.transform.localToWorldMatrix, parts, locked, mr.GetComponent<MeshCollider>());
+                    try { Collect(r, job); }
+                    catch (Exception e) { job.Locked.Add(r.name + " (" + e.GetType().Name + ": " + e.Message + ")"); }
                 }
-
-                if (parts.Count == 0)
-                {
-                    LastResult = locked.Count > 0 ? $"All {locked.Count} meshes are locked by the game, nothing to save" : "Nothing with a mesh in it";
-                    ToolkitBehaviour.Toast(LastResult);
-                    return;
-                }
-
-                int tex = Write(dir, name, parts);
-                LastResult = $"Saved {parts.Count} meshes and {tex} textures to exported/models/{name}" + (locked.Count > 0 ? $", {locked.Count} locked" : "");
-                ToolkitBehaviour.Toast(LastResult);
-                Plugin.Log.LogInfo($"OBJ export: {dir}  parts {parts.Count}  textures {tex}");
-                foreach (var l in locked) Plugin.Log.LogInfo("OBJ export, locked mesh skipped: " + l);
+                Save(name, job, false);
             });
         }
 
-        static void AddSkinned(SkinnedMeshRenderer smr, Matrix4x4 toRoot, List<Part> parts, List<string> locked)
+        static bool Save(string rawName, Job job, bool quiet)
+        {
+            var name = SceneEditor.Safe(rawName);
+            if (job.Parts.Count == 0)
+            {
+                LastResult = job.Locked.Count > 0 ? $"Could not read any of the {job.Locked.Count} meshes, see the log" : "Nothing with a mesh in it";
+                if (!DiskMeshes.Ready) LastResult += ". The game files are still being read, try again in a moment";
+                if (!quiet) ToolkitBehaviour.Toast(LastResult);
+                foreach (var l in job.Locked) Plugin.Log.LogInfo("OBJ export, skipped: " + l);
+                return false;
+            }
+            var dir = Path.Combine(Folder, name);
+            Directory.CreateDirectory(dir);
+            int tex = Write(dir, name, job.Parts);
+            LastResult = $"Saved {job.Parts.Count} meshes and {tex} textures to exported/models/{name}"
+                + (job.FromDisk > 0 ? $" ({job.FromDisk} read from the game files)" : "")
+                + (job.Locked.Count > 0 ? $", {job.Locked.Count} skipped" : "");
+            if (!quiet) ToolkitBehaviour.Toast(LastResult);
+            Plugin.Log.LogInfo($"OBJ export: {dir}  parts {job.Parts.Count}  textures {tex}  from disk {job.FromDisk}");
+            foreach (var l in job.Locked) Plugin.Log.LogInfo("OBJ export, skipped: " + l);
+            return true;
+        }
+
+        static int SceneIndex(Component c)
+        {
+            try { return c.gameObject.scene.IsValid() ? c.gameObject.scene.buildIndex : -1; } catch { return -1; }
+        }
+
+        // the shape of a mesh: from memory when the game allows it, else from the game files
+        static DiskMeshes.Data Geo(Mesh mesh, int buildIndex, Job job, string who)
+        {
+            if (mesh.isReadable)
+            {
+                var d = new DiskMeshes.Data { Name = mesh.name, VertexCount = mesh.vertexCount, V = mesh.vertices.ToArray() };
+                var n = mesh.normals; if (n != null && n.Length == d.V.Length) d.N = n.ToArray();
+                var uv = mesh.uv; if (uv != null && uv.Length == d.V.Length) d.Uv = uv.ToArray();
+                for (int i = 0; i < mesh.subMeshCount; i++) d.Subs.Add(mesh.GetTriangles(i).ToArray());
+                return d;
+            }
+            var disk = DiskMeshes.Get(mesh, buildIndex);
+            if (disk == null)
+            {
+                job.Locked.Add(who + " (" + mesh.name + (DiskMeshes.Ready ? ", not found in the game files)" : ", game files not read yet)"));
+                return null;
+            }
+            job.FromDisk++;
+            return disk;
+        }
+
+        static Part ToPart(string name, DiskMeshes.Data g, IList<Material> mats, Matrix4x4 m, IList<int> onlySubs)
+        {
+            var p = new Part { Name = name, ToRoot = m, Verts = g.V, Normals = g.N, Uvs = g.Uv };
+            int mi = 0;
+            for (int i = 0; i < g.Subs.Count; i++)
+            {
+                if (onlySubs != null && !onlySubs.Contains(i)) continue;
+                p.Subs.Add(g.Subs[i]);
+                int slot = onlySubs != null ? mi++ : i;
+                p.Mats.Add(mats != null && mats.Count > 0 ? mats[Math.Min(slot, mats.Count - 1)] : null);
+            }
+            return p;
+        }
+
+        static void Collect(Renderer r, Job job)
+        {
+            var smr = r.TryCast<SkinnedMeshRenderer>();
+            if (smr != null) { AddSkinned(smr, job); return; }
+            var mr = r.TryCast<MeshRenderer>();
+            if (mr == null) return;
+            var mf = mr.GetComponent<MeshFilter>();
+            var mesh = mf != null ? mf.sharedMesh : null;
+            if (mesh == null) return;
+            if (mr.isPartOfStaticBatch) { AddBatched(mr, mesh, job); return; }
+            var g = Geo(mesh, SceneIndex(mr), job, mr.name);
+            if (g == null) return;
+            job.Parts.Add(ToPart(mr.name, g, mr.sharedMaterials, job.ToRoot * mr.transform.localToWorldMatrix, null));
+        }
+
+        static void AddSkinned(SkinnedMeshRenderer smr, Job job)
         {
             var src = smr.sharedMesh;
             if (src == null) return;
-            if (!src.isReadable) { locked.Add(smr.name + " (" + src.name + ")"); return; }
-            var baked = new Mesh();
-            try
+            if (src.isReadable)
             {
-                smr.BakeMesh(baked);
-                // the baked mesh already holds the renderer's scale, so only move and turn it
-                var t = smr.transform;
-                var m = toRoot * Matrix4x4.TRS(t.position, t.rotation, Vector3.one);
-                AddMesh(smr.name, baked, smr.sharedMaterials, m, parts, locked, null);
+                var baked = new Mesh();
+                try
+                {
+                    smr.BakeMesh(baked);
+                    // the baked mesh already holds the renderer's scale, so only move and turn it
+                    var t = smr.transform;
+                    var g = Geo(baked, -1, job, smr.name);
+                    if (g != null) job.Parts.Add(ToPart(smr.name, g, smr.sharedMaterials, job.ToRoot * Matrix4x4.TRS(t.position, t.rotation, Vector3.one), null));
+                }
+                finally { UnityEngine.Object.Destroy(baked); }
+                return;
             }
-            finally { UnityEngine.Object.Destroy(baked); }
-        }
-
-        static void AddMesh(string name, Mesh mesh, IList<Material> mats, Matrix4x4 m, List<Part> parts, List<string> locked, MeshCollider col)
-        {
-            if (!mesh.isReadable)
+            var d = Geo(src, SceneIndex(smr), job, smr.name);
+            if (d == null) return;
+            var bones = smr.bones;
+            if (d.Bi == null || bones == null || bones.Length == 0 || d.Bind == null || d.Bind.Length == 0)
             {
-                // a collider often holds a readable copy of the same shape
-                var cm = col != null ? col.sharedMesh : null;
-                if (cm != null && cm.isReadable && cm.vertexCount == mesh.vertexCount) mesh = cm;
-                else { locked.Add(name + " (" + mesh.name + ")"); return; }
+                job.Parts.Add(ToPart(smr.name, d, smr.sharedMaterials, job.ToRoot * smr.transform.localToWorldMatrix, null));
+                return;
             }
-            var p = new Part { Name = name, ToRoot = m, Verts = mesh.vertices.ToArray(), Normals = mesh.normals?.ToArray(), Uvs = mesh.uv?.ToArray() };
-            for (int i = 0; i < mesh.subMeshCount; i++)
+            // pose it like it stands now: every vertex follows its bones
+            int nb = Math.Min(bones.Length, d.Bind.Length);
+            var mats = new Matrix4x4[nb];
+            var fallback = smr.transform.localToWorldMatrix;
+            for (int i = 0; i < nb; i++) mats[i] = bones[i] != null ? bones[i].localToWorldMatrix * d.Bind[i] : fallback;
+            var v = new Vector3[d.V.Length];
+            var n = d.N != null ? new Vector3[d.N.Length] : null;
+            for (int i = 0; i < v.Length; i++)
             {
-                p.Subs.Add(mesh.GetTriangles(i).ToArray());
-                p.Mats.Add(mats != null && mats.Count > 0 ? mats[Math.Min(i, mats.Count - 1)] : null);
+                Vector3 pv = Vector3.zero, pn = Vector3.zero;
+                float sum = 0f;
+                for (int k = 0; k < 4; k++)
+                {
+                    float w = d.W[i * 4 + k];
+                    int b = d.Bi[i * 4 + k];
+                    if (w <= 0f || b < 0 || b >= nb) continue;
+                    pv += mats[b].MultiplyPoint3x4(d.V[i]) * w;
+                    if (n != null) pn += mats[b].MultiplyVector(d.N[i]) * w;
+                    sum += w;
+                }
+                if (sum <= 0f) { pv = fallback.MultiplyPoint3x4(d.V[i]); if (n != null) pn = fallback.MultiplyVector(d.N[i]); }
+                else if (sum < 0.999f) pv /= sum;
+                v[i] = pv;
+                if (n != null) n[i] = pn;
             }
-            parts.Add(p);
+            var posed = new DiskMeshes.Data { Name = d.Name, VertexCount = d.VertexCount, V = v, N = n, Uv = d.Uv, Subs = d.Subs };
+            job.Parts.Add(ToPart(smr.name, posed, smr.sharedMaterials, job.ToRoot, null));
         }
 
         // merged level meshes: keep the sub meshes that sit inside this renderer
-        static void AddBatched(MeshRenderer mr, Mesh mesh, Matrix4x4 toRoot, List<Part> parts, List<string> locked)
+        static void AddBatched(MeshRenderer mr, Mesh mesh, Job job)
         {
-            if (!mesh.isReadable) { locked.Add(mr.name + " (merged level mesh)"); return; }
+            var g = Geo(mesh, SceneIndex(mr), job, mr.name + " (merged level mesh)");
+            if (g == null) return;
             var bounds = mr.bounds;
             bounds.Expand(0.02f);
-            var mats = mr.sharedMaterials;
             var batchRoot = mr.staticBatchRootTransform;
             var toWorld = batchRoot != null ? batchRoot.localToWorldMatrix : Matrix4x4.identity;
-            var p = new Part { Name = mr.name, ToRoot = toRoot * toWorld, Verts = mesh.vertices.ToArray(), Normals = mesh.normals?.ToArray(), Uvs = mesh.uv?.ToArray() };
-            int matIndex = 0;
-            for (int i = 0; i < mesh.subMeshCount; i++)
+            var keep = new List<int>();
+            for (int i = 0; i < g.Subs.Count; i++)
             {
-                var tri = mesh.GetTriangles(i).ToArray();
+                var tri = g.Subs[i];
                 if (tri.Length == 0) continue;
+                string key = mesh.Pointer.ToInt64() + "/" + i;
+                if (job.Done.Contains(key)) continue;
                 bool inside = true;
                 foreach (var k in tri)
-                    if (!bounds.Contains(toWorld.MultiplyPoint3x4(p.Verts[k]))) { inside = false; break; }
+                    if (!bounds.Contains(toWorld.MultiplyPoint3x4(g.V[k]))) { inside = false; break; }
                 if (!inside) continue;
-                p.Subs.Add(tri);
-                p.Mats.Add(mats != null && mats.Count > 0 ? mats[Math.Min(matIndex++, mats.Count - 1)] : null);
+                keep.Add(i);
+                job.Done.Add(key);
             }
-            if (p.Subs.Count == 0) { locked.Add(mr.name + " (could not find it in the merged level mesh)"); return; }
-            parts.Add(p);
+            if (keep.Count == 0) { job.Locked.Add(mr.name + " (could not find it in the merged level mesh)"); return; }
+            job.Parts.Add(ToPart(mr.name, g, mr.sharedMaterials, job.ToRoot * toWorld, keep));
         }
 
         static string F(float v) => v.ToString("0.######", Inv);

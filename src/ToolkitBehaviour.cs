@@ -96,6 +96,7 @@ namespace Road96Toolkit
             Skips.Update();
             Game.Try("Height", Height.Update);
             SavedObjects.Update();
+            try { AssetBrowser.Update(); } catch (System.Exception e) { Plugin.Log.LogWarning("Asset export: " + e.Message); }
             CursorFix();
         }
 

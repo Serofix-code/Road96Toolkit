@@ -63,7 +63,7 @@ namespace Road96Toolkit
 
         static Posed Find(GameObject go) => _posed.FirstOrDefault(p => p.Go != null && p.Go.Pointer == go.Pointer);
 
-        static void Play(GameObject go, Animator anim, AnimationClip clip)
+        internal static void Play(GameObject go, Animator anim, AnimationClip clip)
         {
             if (clip == null) return;
             var p = Find(go);

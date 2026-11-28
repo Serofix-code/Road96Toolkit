@@ -27,7 +27,9 @@ namespace Road96Toolkit
 
         // panels
         static int _leftTab, _bottomTab, _inspTab;
-        static bool _bottomOpen = true;
+        static bool _bottomOpen = true, _tallAssets = true;
+        static readonly float[] AreaSizes = { 10f, 25f, 50f, 100f, 250f };
+        static int _area = 1;
         static Rect _top, _left, _right, _bottom, _status, _preview; // pixels, top left origin
 
         // palette
@@ -90,6 +92,20 @@ namespace Road96Toolkit
             NpcPreview.Hide();
             Freecam.Disable();
             ToolkitBehaviour.Toast("Dev view off");
+        }
+
+        public static Transform Selected => _sel;
+        public static void FocusOn(Transform t) { if (t != null) Focus(t); }
+
+        // used by the asset manager: place copies of any object, a mesh template included
+        static Mesh _ghostMesh;
+        static IList<Material> _ghostMats;
+        internal static void PlaceFrom(GameObject go, string name, Mesh mesh, IList<Material> mats)
+        {
+            if (go == null) return;
+            StartPlace(new Spawner.Source { Go = go, Name = name });
+            _ghostMesh = mesh; _ghostMats = mats;
+            if (_ghost != null) ToolkitBehaviour.Toast("Click in the world to place " + name);
         }
 
         public static void Select(Transform t)
@@ -431,7 +447,8 @@ namespace Road96Toolkit
                 _ghost.hideFlags = HideFlags.None;
                 _ghost.name = s.Name + " (toolkit)";
                 _ghostFrom = CharacterCatalog.FromOf(s.Go) ?? "here";
-                _ghostSource = s.Go.scene.IsValid() ? s.Go : null;
+                _ghostSource = s.Go.scene.IsValid() && s.Go.transform.root.name != "ToolkitTemplates" ? s.Go : null;
+                _ghostMesh = null; _ghostMats = null;
                 Spawner.MakeStill(_ghost);
                 _ghostColliders.Clear();
                 foreach (var c in _ghost.GetComponentsInChildren<Collider>(true))
@@ -472,6 +489,7 @@ namespace Road96Toolkit
             if (!Spawner.StayStill) Game.Try("Wake clone", () => { foreach (var r in placed.GetComponentsInChildren<RoutineController>(true)) r.enabled = true; });
             Spawner.Track(placed, _ghostFrom);
             if (_ghostSource != null) SavedObjects.NoteSource(placed, _ghostSource);
+            if (_ghostMesh != null) SavedObjects.NoteMesh(placed, _ghostMesh, _ghostMats);
             if (SavedObjects.AutoKeep) SavedObjects.Keep(placed);
             _sel = placed.transform;
             Reveal(_sel);
@@ -546,7 +564,7 @@ namespace Road96Toolkit
             DrawGizmo();
 
             const float topH = 30f, statusH = 24f, side = 6f;
-            float bottomH = _bottomOpen ? Mathf.Min(220f, sh * 0.28f) : 28f;
+            float bottomH = !_bottomOpen ? 28f : _bottomTab == 1 && _tallAssets ? sh * 0.5f : Mathf.Min(220f, sh * 0.28f);
 
             var top = new Rect(0, 0, sw, topH);
             var left = new Rect(side, topH + 4, 310, sh - topH - statusH - 10);
@@ -608,6 +626,9 @@ namespace Road96Toolkit
             if (GUI.Button(Next(70), "Undo")) DoUndo();
             x += 10;
             if (GUI.Button(Next(110), Spawner.StayStill ? "Placed: still" : "Placed: alive")) Spawner.ToggleStill();
+            x += 10;
+            if (GUI.Button(Next(170), $"Save {AreaSizes[_area]:0} m around as OBJ")) ObjExport.ExportArea(Freecam.Position, AreaSizes[_area]);
+            if (GUI.Button(Next(30), "+")) _area = (_area + 1) % AreaSizes.Length;
 
             var close = new Rect(area.xMax - 66, y, 60, h);
             if (GUI.Button(close, "Close")) Disable();
@@ -1093,11 +1114,14 @@ namespace Road96Toolkit
             var tabs = new Rect(area.x + 6, area.y + 4, area.width - 12, 22);
             float w = 130;
             if (Gui.Pick(new Rect(tabs.x, tabs.y, w, 22), "Console", _bottomTab == 0 && _bottomOpen, Gui.TabKind.Main)) { _bottomTab = 0; _bottomOpen = true; }
-            if (Gui.Pick(new Rect(tabs.x + w + 3, tabs.y, w, 22), "Saved objects", _bottomTab == 1 && _bottomOpen, Gui.TabKind.Main)) { _bottomTab = 1; _bottomOpen = true; }
+            if (Gui.Pick(new Rect(tabs.x + w + 3, tabs.y, w, 22), "Assets", _bottomTab == 1 && _bottomOpen, Gui.TabKind.Main)) { _bottomTab = 1; _bottomOpen = true; }
+            if (Gui.Pick(new Rect(tabs.x + (w + 3) * 2, tabs.y, w, 22), "Saved objects", _bottomTab == 2 && _bottomOpen, Gui.TabKind.Main)) { _bottomTab = 2; _bottomOpen = true; }
             if (GUI.Button(new Rect(tabs.xMax - 70, tabs.y, 70, 22), _bottomOpen ? "Hide" : "Show")) _bottomOpen = !_bottomOpen;
+            if (_bottomOpen && _bottomTab == 1 && GUI.Button(new Rect(tabs.xMax - 144, tabs.y, 70, 22), _tallAssets ? "Smaller" : "Bigger")) _tallAssets = !_tallAssets;
             if (!_bottomOpen) return;
             var inner = new Rect(area.x + 6, area.y + 30, area.width - 12, area.height - 34);
             if (_bottomTab == 0) DrawConsole(inner);
+            else if (_bottomTab == 1) AssetBrowser.Draw(inner);
             else { Gui.Begin(inner); SavedObjects.Draw(); }
         }
 
