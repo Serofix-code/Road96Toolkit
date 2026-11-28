@@ -970,6 +970,7 @@ namespace Road96Toolkit
             var tabs = new List<string> { "Actions", "Components" };
             if (hasChar) tabs.Add("Character");
             if (hasFx) tabs.Add("Effects");
+            if (go.GetComponentInChildren<Renderer>(true) != null) tabs.Add("Textures");
             if (_inspTab >= tabs.Count) _inspTab = 0;
             _inspTab = Gui.Tabs(tabs.ToArray(), _inspTab, Gui.TabKind.Section);
             switch (tabs[_inspTab])
@@ -978,6 +979,7 @@ namespace Road96Toolkit
                 case "Components": DrawComponents(go); break;
                 case "Character": DrawCharacter(t, go); break;
                 case "Effects": DrawEffects(go); break;
+                case "Textures": TextureEdit.Draw(t); break;
             }
         }
 
