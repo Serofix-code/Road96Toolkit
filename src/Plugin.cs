@@ -12,7 +12,7 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.10.1";
+        public const string Version = "1.11.0";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;

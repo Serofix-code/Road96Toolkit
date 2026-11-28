@@ -248,6 +248,7 @@ namespace Road96Toolkit
                 }
             }
             catch { }
+            try { _codes.AddRange(Puzzles.CodeLines()); } catch { }
         }
 
         public static void Draw()
@@ -280,7 +281,7 @@ namespace Road96Toolkit
             }
             if (_codes.Count > 0)
             {
-                GUI.Label(new Rect(r.x + 8, y, w - 16, 20), "Keypad codes in this level");
+                GUI.Label(new Rect(r.x + 8, y, w - 16, 20), "Codes in this level");
                 y += 22;
                 foreach (var c in _codes)
                 {

@@ -428,7 +428,8 @@ namespace Road96Toolkit
 
         public static void Draw()
         {
-            _view = Gui.Tabs(new[] { "This conversation", "Phone numbers" }, _view, Gui.TabKind.Choice);
+            _view = Gui.Tabs(new[] { "This conversation", "Phone numbers", "Puzzles" }, _view, Gui.TabKind.Choice);
+            if (_view == 2) { Puzzles.Draw(); return; }
             if (_forced.Count > 0)
             {
                 var r = Gui.Row(2f, 1f);
