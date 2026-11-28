@@ -123,6 +123,7 @@ namespace Road96Toolkit
             return res;
         }
         internal static bool StayStill => _stayStill;
+        internal static void ToggleStill() => _stayStill = !_stayStill;
 
         static bool IsOurs(GameObject go)
         {

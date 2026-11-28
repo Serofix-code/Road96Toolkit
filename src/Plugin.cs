@@ -12,7 +12,7 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.12.0";
+        public const string Version = "1.13.0";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;
@@ -70,6 +70,7 @@ namespace Road96Toolkit
         {
             Instance = this;
             Log = base.Log;
+            LogConsole.Start();
 
             var cfgVersion = Config.Bind("General", "ConfigVersion", 1, "Used by the toolkit to update old settings, leave it alone");
             _upgradeKeys = cfgVersion.Value < 2;
@@ -123,6 +124,8 @@ namespace Road96Toolkit
             ChoiceEditor.Patch(harmony);
             Requirements.Patch(harmony);
             Skips.Init(Config);
+            Height.Init(Config);
+            SavedObjects.Init(Config);
             Skips.Patch(harmony);
             RunFacts.Patch(harmony);
             AddComponent<ToolkitBehaviour>();

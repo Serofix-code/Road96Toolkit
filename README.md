@@ -46,6 +46,8 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Age setter for an exact age, or a youngest and oldest age for the game to roll between
 * Teen picker: make your own teens with a face, a custom icon (PNG or JPG), starting money, energy, distance to the border, age, days missing and where they were last seen. Choose which of them show up on the three teen cards after Sonya's talk, or leave a card to the game. Your teens are kept in `BepInEx/config/Road96Toolkit/teens.json`
 * HUD icon swapper: replace the teen head in the top left corner with another teen's icon, any picture the game has loaded, or your own PNG or JPG (put them in `BepInEx/config/Road96Toolkit/icons`). Hover a name to see the picture
+* Save icons: save one picture or the whole list (every teen icon, or every picture the game has loaded) as PNG files to `BepInEx/config/Road96Toolkit/exported/icons`
+* Height (Teen > Height): make the teen taller or shorter, from 0.3x to 3x. Your eyes, your body and how you fit through doors change with it, and characters keep looking you in the eyes. The panel shows your eye height and who is looking at you
 
 **Abilities**
 * Toggle every ability on or off, give all, remove all
@@ -106,14 +108,20 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 * Photo mode opens with the options you used last time (can be turned off)
 
 **Dev view** (F7)
-* An editor mode built on the freecam. Hold the right mouse button to look around, the cursor stays free for clicking
-* Spawn palette on the left with the characters of this level, characters copied from other levels, and props. Rest the mouse on a name for the 3D preview
-* Click a name, then click in the world to place it. Shift+click places more, R turns it
-* Click any character or object in the world to select it. A frame shows what is selected
-* Inspector on the right: move it with the mouse (G), nudge it, turn it, scale it, drop it to the ground, make it face you, bring it to you
-* For characters: make them stand still or go back to their routine, freeze or speed up their animation, mute them
-* Poses: play any of the character's own animations, or any animation the game has loaded, then hold the pose for a photo
-* Copy (Ctrl+D), delete (Del), hide, or open it in the scene editor. Moves are remembered for the layout saver
+* A level editor built on the freecam, laid out like a game engine editor. Hold the right mouse button to look around, the cursor stays free for clicking
+* Toolbar: save and load the layout, the Select, Move, Rotate and Scale tools (1 2 3 4), snapping, pause and slow motion for the game while the camera keeps moving, undo, the scene name and your fps
+* Hierarchy: every loaded scene as a tree you can fold open, with search. Click a name to select it, selecting in the world opens the tree to it
+* Spawn: the characters of this level, characters copied from other levels, and props. Rest the mouse on a name for the 3D preview. Click a name, then click in the world to place it. Shift+click places more, R turns it
+* Click anything in the world to select it. With a tool picked, drag to move it over the ground (Shift for up and down), turn it (Shift to tilt) or size it, with the axes drawn on it
+* Inspector: rename it, switch it on or off, type its exact position, rotation and size, nudge it with a step you pick, drop it to the ground, make it face you, bring it to you, focus the camera on it (F)
+* Components: everything on the object with a switch for each part (lights, sounds, colliders, scripts)
+* Character: stand still or back to their routine, animation speed, sounds, and poses from any animation the game has loaded
+* Effects: play, stop or restart the particle effects in an object
+* Save as OBJ: writes the selected object with everything under it to `BepInEx/config/Road96Toolkit/exported/models` as an .obj with its materials and textures, ready for Blender. Characters are saved in the pose they are in. Meshes the game locks are skipped and listed in the log
+* Keep forever: anything you place or copy can stay in its level. It comes back every time that level loads until you remove it, so you can put dust at the border and find it there on every trip. Kept objects are listed in the Saved objects panel and stored per level in `BepInEx/config/Road96Toolkit/saved`. You can also have everything you place kept, and your saved layout applied when a level loads
+* Console: the live log of the game and every mod, with filters for info, warnings and errors and a search
+* Undo (Ctrl+Z) for moves and removals, Ctrl+S saves the layout. Removing something from the level hides it, so undo can bring it back
+* F5 while you hold or carry something drops it and lets go of it, here and in the scene editor
 
 **Character spawner**
 * Lists every character the current area has loaded (and any other prefab in memory)
@@ -141,7 +149,7 @@ A BepInEx 6 plugin for Road 96 (Steam, PC) that adds an in game menu with a free
 | F2 | Freecam on or off |
 | Backspace | Leave the freecam and go back to the teen's view |
 | F3 | Noclip on or off |
-| F5 | Select the object in the middle of the screen |
+| F5 | Select the object in the middle of the screen, or drop what you are holding |
 | F4 | Hide or show the HUD |
 | F6 | Open the developer menu tab |
 | F7 | Dev view on or off |

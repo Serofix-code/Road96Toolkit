@@ -141,6 +141,18 @@ namespace Road96Toolkit
             catch { return Vector2.zero; }
         }
 
+        public static bool LeftMouseHeld()
+        {
+            Detect();
+            try
+            {
+                if (_mode == 0) return Input.GetMouseButton(0);
+                var m = NewInput.Mouse.current;
+                return m != null && m.leftButton.isPressed;
+            }
+            catch { return false; }
+        }
+
         public static bool RightMouseHeld()
         {
             Detect();

@@ -85,7 +85,7 @@ namespace Road96Toolkit
             catch (Exception e) { ToolkitBehaviour.Toast("Can't read that file"); Plugin.Log.LogWarning("Layout read: " + e.Message); return null; }
         }
 
-        static GameObject FindTemplate(Spawn s)
+        internal static GameObject FindTemplate(Spawn s)
         {
             var e = CharacterCatalog.Entries.FirstOrDefault(x => x.Template != null && x.Name == s.Template && (s.From == "here" || x.From == s.From));
             if (e != null) return e.Template;

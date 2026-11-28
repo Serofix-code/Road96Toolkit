@@ -90,6 +90,21 @@ namespace Road96Toolkit
             if (t != null) ToolkitBehaviour.Toast("Selected " + t.name);
         }
 
+        public static Transform Selected => _sel;
+        public static bool Carrying => _carry && _sel != null;
+
+        // the pick key while something is carried drops it where it is and lets go of it
+        public static bool DropHeld()
+        {
+            if (!Carrying) return false;
+            _carry = false;
+            Remember(_sel);
+            SavedObjects.Moved(_sel);
+            ToolkitBehaviour.Toast("Dropped " + _sel.name);
+            _sel = null;
+            return true;
+        }
+
         public static void PickUnderCrosshair()
         {
             var cam = Game.MainCamera;
@@ -344,7 +359,7 @@ namespace Road96Toolkit
         {
             if (t == null) return;
             var go = t.gameObject;
-            if (go.name.EndsWith("(toolkit)")) return; // clones are not saved, they do not exist on reload
+            if (go.name.EndsWith("(toolkit)")) { SavedObjects.Moved(t); return; } // clones live in the saved objects file instead
             var scene = go.scene.name;
             var path = PathOf(t);
             var p = t.position;
@@ -373,7 +388,7 @@ namespace Road96Toolkit
             return string.Join("/", parts);
         }
 
-        static Transform FindByPath(Scene scene, string path)
+        internal static Transform FindByPath(Scene scene, string path)
         {
             var parts = path.Split('/');
             foreach (var root in scene.GetRootGameObjects())
@@ -386,7 +401,7 @@ namespace Road96Toolkit
             return null;
         }
 
-        static void Save()
+        internal static void Save()
         {
             Game.Try("Save layout", () =>
             {
@@ -409,7 +424,7 @@ namespace Road96Toolkit
             });
         }
 
-        static void Load()
+        internal static void Load()
         {
             Game.Try("Load layout", () =>
             {
@@ -431,7 +446,23 @@ namespace Road96Toolkit
             });
         }
 
-        static string Safe(string s)
+        // the saved layout of one scene, used when layouts load by themselves
+        internal static void ApplyLayoutFor(Scene sc)
+        {
+            Game.Try("Auto layout", () =>
+            {
+                var file = Path.Combine(SaveDir, Safe(sc.name) + ".json");
+                if (!File.Exists(file)) return;
+                var edits = JsonSerializer.Deserialize<List<Edit>>(File.ReadAllText(file));
+                if (edits == null || edits.Count == 0) return;
+                foreach (var e in edits) e.Scene ??= sc.name;
+                var (a, m) = ApplyEdits(edits);
+                Plugin.Log.LogInfo($"Layout for {sc.name}: {a} applied, {m} not found");
+                if (a > 0) ToolkitBehaviour.Toast($"Layout for {sc.name} applied ({a} changes)");
+            });
+        }
+
+        internal static string Safe(string s)
         {
             foreach (var c in Path.GetInvalidFileNameChars()) s = s.Replace(c, '_');
             return string.IsNullOrEmpty(s) ? "unnamed" : s;

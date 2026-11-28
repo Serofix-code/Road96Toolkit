@@ -53,7 +53,15 @@ namespace Road96Toolkit
             if (Plugin.ItemEspKey.Pressed()) ItemEsp.Toggle();
             if (Plugin.FreecamKey.Pressed()) Freecam.Toggle();
             if (Plugin.NoclipKey.Pressed()) Noclip.Toggle();
-            if (Plugin.PickKey.Pressed()) SceneEditor.PickUnderCrosshair();
+            if (Plugin.PickKey.Pressed())
+            {
+                // pressing it while holding something lets go of it, otherwise it picks
+                if (!SceneEditor.DropHeld() && !DevView.DropHeld())
+                {
+                    SceneEditor.PickUnderCrosshair();
+                    if (DevView.Active && SceneEditor.Selected != null) DevView.Select(SceneEditor.Selected);
+                }
+            }
             if (Plugin.DevViewKey.Pressed()) DevView.Toggle();
             if (Plugin.PhotoKey.Pressed()) PhotoMode.Toggle();
             if (Plugin.HideUiKey.Pressed()) WorldTab.ToggleHud();
@@ -86,6 +94,8 @@ namespace Road96Toolkit
             TeenPicker.Update();
             ThirdPerson.Update();
             Skips.Update();
+            Game.Try("Height", Height.Update);
+            SavedObjects.Update();
             CursorFix();
         }
 

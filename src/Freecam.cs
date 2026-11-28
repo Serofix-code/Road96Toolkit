@@ -112,6 +112,9 @@ namespace Road96Toolkit
                 _pitch = Mathf.Clamp(_pitch - d.y * 0.1f, -89f, 89f);
             }
 
+            // typing a value in the dev view must not fly the camera around
+            if (DevView.Typing) return;
+
             float sp = _speed;
             if (InputHelper.Held(KeyCode.LeftShift)) sp *= 4f;
             if (InputHelper.Held(KeyCode.LeftControl)) sp *= 0.25f;

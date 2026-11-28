@@ -10,7 +10,7 @@ namespace Road96Toolkit
     internal static class TeenTab
     {
         static int _section;
-        static readonly string[] Sections = { "Teen and gender", "Age", "HUD icon", "Teen picker" };
+        static readonly string[] Sections = { "Teen and gender", "Age", "HUD icon", "Teen picker", "Height" };
 
         internal static int Faces(NB.NarrativeSettings s) => s == null ? _faces.Count : LoadFaces(s);
 
@@ -48,6 +48,7 @@ namespace Road96Toolkit
             if (_section == 1) { AgeSection.Draw(); return; }
             if (_section == 2) { IconSwapper.Draw(); return; }
             if (_section == 3) { TeenPicker.Draw(); return; }
+            if (_section == 4) { Height.Draw(); return; }
 
             var ctx = Game.Context;
             var settings = Game.Settings;

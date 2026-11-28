@@ -50,6 +50,51 @@ namespace Road96Toolkit
         static float _nextCheck;
 
         public static string Folder => Path.Combine(Paths.ConfigPath, "Road96Toolkit", "icons");
+        public static string ExportFolder => Path.Combine(Paths.ConfigPath, "Road96Toolkit", "exported", "icons");
+
+        // saving a whole list goes a few pictures a frame so the game does not freeze
+        static readonly Queue<Pic> _toSave = new Queue<Pic>();
+        static int _saved, _saveTotal;
+
+        static bool SavePic(Pic p)
+        {
+            var sp = p.Sprite;
+            if (sp == null) return false;
+            try
+            {
+                var tex = sp.texture;
+                if (tex == null) return false;
+                var tr = sp.textureRect;
+                var uv = new Rect(tr.x / tex.width, tr.y / tex.height, tr.width / tex.width, tr.height / tex.height);
+                var png = ObjExport.Png(tex, uv);
+                if (png == null) return false;
+                Directory.CreateDirectory(ExportFolder);
+                var name = ObjExport.Clean(sp.name);
+                if (p.Name.StartsWith("Teen #")) name = "teen" + p.Name.Substring(6).Split(' ')[0] + "_" + name;
+                File.WriteAllBytes(Path.Combine(ExportFolder, name + ".png"), png);
+                return true;
+            }
+            catch (Exception e) { Plugin.Log.LogWarning("Save icon: " + e.Message); return false; }
+        }
+
+        static void SaveAll(List<Pic> list)
+        {
+            foreach (var p in list) if (p.File == null) _toSave.Enqueue(p);
+            _saveTotal = _toSave.Count;
+            _saved = 0;
+            ToolkitBehaviour.Toast($"Saving {_saveTotal} pictures...");
+        }
+
+        static void SaveSome()
+        {
+            if (_toSave.Count == 0) return;
+            for (int i = 0; i < 8 && _toSave.Count > 0; i++) if (SavePic(_toSave.Dequeue())) _saved++;
+            if (_toSave.Count == 0)
+            {
+                ToolkitBehaviour.Toast($"Saved {_saved} pictures to exported/icons");
+                Plugin.Log.LogInfo($"Icons saved to {ExportFolder}: {_saved} of {_saveTotal}");
+            }
+        }
 
         public static void Draw()
         {
@@ -87,6 +132,17 @@ namespace Road96Toolkit
                 _page = 0;
             }
 
+            if (_source != 2)
+            {
+                var sr = Gui.Row(1f, 1f);
+                if (_toSave.Count > 0) GUI.Label(sr[0], $"Saving... {_saveTotal - _toSave.Count} of {_saveTotal}");
+                else if (GUI.Button(sr[0], $"Save all {_shown.Count} as PNG")) SaveAll(_shown);
+                if (GUI.Button(sr[1], "Open saved pictures"))
+                {
+                    Directory.CreateDirectory(ExportFolder);
+                    Application.OpenURL("file:///" + ExportFolder.Replace('\\', '/'));
+                }
+            }
             int pick = Gui.List(_shown, ref _page, p => p.Name, 9, p => p == _sel);
             if (pick >= 0) { _sel = _shown[pick]; MakeThumb(_sel); }
             // hovering an entry shows its picture, clicking picks it
@@ -110,6 +166,9 @@ namespace Road96Toolkit
                 b.y += Gui.LineH + Gui.Gap;
                 if (_sel != null && GUI.Button(b, "Use " + _sel.Name.Split(' ')[0] + " as my HUD icon")) Apply(_sel);
                 else if (_sel == null) GUI.Label(b, "Click one to pick it");
+                b.y += Gui.LineH + Gui.Gap;
+                if (_sel != null && _sel.File == null && GUI.Button(b, "Save this picture as PNG"))
+                    ToolkitBehaviour.Toast(SavePic(_sel) ? "Saved to exported/icons" : "Could not save that one");
                 Gui.Y += size + Gui.Gap;
             }
         }
@@ -241,6 +300,7 @@ namespace Road96Toolkit
         // the game redraws its HUD icon now and then, so keep ours on top
         public static void Update()
         {
+            SaveSome();
             if (_swap == null || Time.unscaledTime < _nextCheck) return;
             _nextCheck = Time.unscaledTime + 0.5f;
             try
