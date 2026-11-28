@@ -10,7 +10,7 @@ namespace Road96Toolkit
 
         internal static ToolkitBehaviour Instance;
 
-        static readonly string[] TabNames = { "Story", "Levels", "Teen", "Abilities", "Items", "Saves", "World", "Travel", "Freecam", "Spawner", "Scene editor", "Dev menu" };
+        static readonly string[] TabNames = { "Story", "Levels", "Teen", "Abilities", "Items", "Saves", "World", "Travel", "Freecam", "Spawner", "Scene editor", "Dev menu", "Skip" };
         const int DevTab = 11;
         internal const int SceneEditorTab = 10;
 
@@ -85,6 +85,7 @@ namespace Road96Toolkit
             ItemEsp.Update();
             TeenPicker.Update();
             ThirdPerson.Update();
+            Skips.Update();
             CursorFix();
         }
 
@@ -218,6 +219,7 @@ namespace Road96Toolkit
                     case 9: Spawner.Draw(); break;
                     case 10: SceneEditor.Draw(); break;
                     case 11: DevMenuTab.Draw(); break;
+                    case 12: Skips.Draw(); break;
                 }
             }
             catch (Exception e)
