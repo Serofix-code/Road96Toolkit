@@ -234,41 +234,131 @@ namespace Road96Toolkit
             });
         }
 
+        // ---------- world states ----------
+        // Most phone calls check a world state asset: who you met, which scenario you saw, the act of the
+        // story, the trip number, an election gauge, or a fact. Facts inside it are given for real. Anything
+        // else can't be given, so the check in the conversation is made to pass instead, until the game closes.
+
+        static readonly Dictionary<IntPtr, bool> _forced = new Dictionary<IntPtr, bool>();
+
+        public static void Patch(HarmonyLib.Harmony h)
+        {
+            try
+            {
+                h.Patch(HarmonyLib.AccessTools.Method(typeof(NB.NodeCanvasCheckWorldState), "OnCheck"),
+                    postfix: new HarmonyLib.HarmonyMethod(typeof(Requirements), nameof(WorldPostfix)));
+            }
+            catch (Exception e) { Plugin.Log.LogWarning("World state hook failed: " + e.Message); }
+        }
+
+        static void WorldPostfix(NB.NodeCanvasCheckWorldState __instance, ref bool __result)
+        {
+            try
+            {
+                var s = __instance._state;
+                if (s != null && _forced.TryGetValue(s.Pointer, out var want)) __result = want;
+            }
+            catch { }
+        }
+
+        static string TagOf(TagWSC t)
+        {
+            string tag = null;
+            try { tag = t.tagWrapper != null ? t.tagWrapper._tag : null; } catch { }
+            return string.IsNullOrEmpty(tag) ? t._tag : tag;
+        }
+
+        static string Describe(WorldStateCondition w, int depth = 0)
+        {
+            if (w == null) return "nothing";
+            try
+            {
+                var t = w.TryCast<TagWSC>();
+                if (t != null) return (t._isPresent ? "fact " : "no fact ") + TagOf(t);
+                var seen = w.TryCast<CharacterSeenWSC>();
+                if (seen != null) return "met " + seen._npc + (seen._distance == CharacterSeenWSC.Distance.RUN ? " this trip" : seen._distance == CharacterSeenWSC.Distance.PREVIOUS_BUBBLE ? " just before" : " in any trip");
+                var bub = w.TryCast<LastBubbleSeenWSC>();
+                if (bub != null) return "played " + bub._bubbleID + " (" + bub._bubbleSawAt.ToString().ToLowerInvariant().Replace('_', ' ') + ")";
+                var cur = w.TryCast<CurrentBubbleWSC>();
+                if (cur != null) return "in scenario " + cur._bubbleID;
+                var act = w.TryCast<StoryActWSC>();
+                if (act != null) return "story act " + act._overOrEqual + " to " + act._underOrEqual;
+                var run = w.TryCast<RunIDWSC>();
+                if (run != null) return "trip " + run._currentRunRequired;
+                var g = w.TryCast<WorldGaugeWSC>();
+                if (g != null) return ChoiceEditor.GaugeName(g._gauge) + (g._comparator == WorldGaugeWSC.Comparator.OVER_OR_EQUAL ? " at least " : " at most ") + g._value.ToString("0.##");
+                var gh = w.TryCast<WorldGaugeHigherWSC>();
+                if (gh != null) return ChoiceEditor.GaugeName(gh._higherTarget) + (gh._comparator == WorldGaugeHigherWSC.Comparator.HIGHER ? " leads" : " is behind");
+                var dist = w.TryCast<DistanceRemainingWSC>();
+                if (dist != null) return (dist._under ? "under " : "over ") + dist._distanceMax + " km to the border";
+                var st = w.TryCast<WorldState>();
+                if (st != null && depth < 2)
+                {
+                    var reqs = st._anyRequirements;
+                    if (reqs == null || reqs.Length == 0) return "always";
+                    var ways = new List<string>();
+                    for (int i = 0; i < reqs.Length && i < 3; i++)
+                    {
+                        var parts = new List<string>();
+                        var r = reqs[i];
+                        if (r._requiredConditions != null) foreach (var c in r._requiredConditions) parts.Add(Describe(c, depth + 1));
+                        if (r._unwantedConditions != null) foreach (var c in r._unwantedConditions) parts.Add("not " + Describe(c, depth + 1));
+                        ways.Add(parts.Count == 0 ? "always" : string.Join(" and ", parts));
+                    }
+                    if (reqs.Length > 3) ways.Add($"{reqs.Length - 3} more ways");
+                    return ways.Count == 1 ? ways[0] : "(" + string.Join(") or (", ways) + ")";
+                }
+            }
+            catch { }
+            return w.name;
+        }
+
+        // gives the facts a world state asks for, using the first way it can be met
+        static void GiveFacts(WorldStateCondition w, bool want)
+        {
+            var t = w.TryCast<TagWSC>();
+            if (t != null) { var tag = TagOf(t); if (!string.IsNullOrEmpty(tag)) FactsEditor.Set(tag, t._isPresent == want); return; }
+            var st = w.TryCast<WorldState>();
+            if (st == null || !want) return;
+            var reqs = st._anyRequirements;
+            if (reqs == null || reqs.Length == 0) return;
+            var r = reqs[0];
+            if (r._requiredConditions != null) foreach (var c in r._requiredConditions) if (c != null) GiveFacts(c, true);
+            if (r._unwantedConditions != null) foreach (var c in r._unwantedConditions) if (c != null) GiveFacts(c, false);
+        }
+
         static void AddWorld(Group gr, WorldStateCondition w, bool inv)
         {
             if (w == null) return;
             var t = w.TryCast<TagWSC>();
-            if (t != null)
-            {
-                string tag = null;
-                try { tag = t.tagWrapper != null ? t.tagWrapper._tag : null; } catch { }
-                if (string.IsNullOrEmpty(tag)) tag = t._tag;
-                AddTag(gr, tag, t._isPresent != inv);
-                return;
-            }
+            if (t != null) { AddTag(gr, TagOf(t), t._isPresent != inv); return; }
 
-            var st = w.TryCast<WorldState>();
-            if (st != null && !inv)
-            {
-                var reqs = st._anyRequirements;
-                if (reqs != null && reqs.Length == 1)
-                {
-                    var r = reqs[0];
-                    if (r._requiredConditions != null) foreach (var c in r._requiredConditions) AddWorld(gr, c, false);
-                    if (r._unwantedConditions != null) foreach (var c in r._unwantedConditions) AddWorld(gr, c, true);
-                    return;
-                }
-            }
-
-            string name = w.name;
-            var seen = w.TryCast<CharacterSeenWSC>();
-            if (seen != null) name = "met " + seen._npc + " (" + seen._distance + ")";
+            bool want = !inv;
+            var ptr = w.Pointer;
             gr.Needs.Add(new Need
             {
-                Text = (inv ? "Not " : "") + "world state " + name,
-                Met = () => { var ctx = Game.Context; return ctx == null ? (bool?)null : w.IsConditionValid(ctx) != inv; },
+                Text = (inv ? "Not: " : "") + Short(Describe(w), 110),
+                Met = () =>
+                {
+                    if (_forced.TryGetValue(ptr, out var f)) return f == want;
+                    var ctx = Game.Context;
+                    return ctx == null ? (bool?)null : w.IsConditionValid(ctx) == want;
+                },
+                Give = () =>
+                {
+                    var ctx = Game.Context;
+                    Game.Try("World state facts", () => GiveFacts(w, want));
+                    bool ok = false;
+                    try { ok = ctx != null && w.IsConditionValid(ctx) == want; } catch { }
+                    if (ok) _forced.Remove(ptr);
+                    else _forced[ptr] = want;
+                    Plugin.Log.LogInfo($"Unlock: {Describe(w)} -> {(ok ? "facts given" : "check forced to " + want)}");
+                },
             });
         }
+
+        public static int ForcedCount => _forced.Count;
+        public static void ClearForced() { _forced.Clear(); ChoiceHints.Reread(); }
 
         // gives what is missing; for "any of" only the first thing we can give
         public static int Give(Group g)
@@ -279,7 +369,7 @@ namespace Road96Toolkit
                 bool? met = null;
                 try { met = need.Met(); } catch { }
                 if (met == true || need.Give == null) { if (g.AnyOf && met == true) return n; continue; }
-                if (Game.Try("Give requirement", need.Give)) n++;
+                if (Game.Try("Give requirement", need.Give)) { n++; Plugin.Log.LogInfo("Unlock gave: " + need.Text); }
                 if (g.AnyOf) break;
             }
             ChoiceHints.Reread();
@@ -339,6 +429,12 @@ namespace Road96Toolkit
         public static void Draw()
         {
             _view = Gui.Tabs(new[] { "This conversation", "Phone numbers" }, _view, Gui.TabKind.Choice);
+            if (_forced.Count > 0)
+            {
+                var r = Gui.Row(2f, 1f);
+                GUI.Label(r[0], $"{_forced.Count} checks forced open until the game closes");
+                if (GUI.Button(r[1], "Stop forcing")) { ClearForced(); ToolkitBehaviour.Toast("Checks back to normal"); }
+            }
             if (_view == 0) DrawCurrent(); else DrawPhones();
         }
 

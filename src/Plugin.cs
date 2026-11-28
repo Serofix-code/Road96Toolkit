@@ -12,7 +12,7 @@ namespace Road96Toolkit
     {
         public const string Guid = "serofix.road96toolkit";
         public const string Name = "Road96 Toolkit";
-        public const string Version = "1.10.0";
+        public const string Version = "1.10.1";
 
         internal static new ManualLogSource Log;
         internal static Plugin Instance;
@@ -121,6 +121,7 @@ namespace Road96Toolkit
             var harmony = new HarmonyLib.Harmony(Guid);
             TeenPicker.Patch(harmony);
             ChoiceEditor.Patch(harmony);
+            Requirements.Patch(harmony);
             RunFacts.Patch(harmony);
             AddComponent<ToolkitBehaviour>();
             Log.LogInfo($"{Name} {Version} loaded. Press {MenuKey} in game.");
